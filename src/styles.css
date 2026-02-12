@@ -1,0 +1,85 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-feature-settings: "cv01", "cv05", "cv09", "cv11", "ss03";
+}
+
+h1 {
+  font-family: "Inter", sans-serif;
+  font-size: 40px;
+  font-style: normal;
+  font-variation-settings:
+    "opsz" 32,
+    "wght" 700;
+  font-weight: 700;
+  height: 40px;
+  letter-spacing: -1.6px;
+  line-height: 40px;
+  white-space-collapse: preserve;
+}
+
+p {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+}
+
+.wrapper {
+  padding: 0 20px;
+  margin: 0 auto;
+  max-width: 960px;
+}
+
+.soft {
+  color: rgb(153, 153, 153);
+  display: block;
+}
+
+.hero {
+  display: flex;
+  height: 500px;
+  align-content: center;
+  align-items: center;
+
+  h1 {
+    text-align: center;
+    margin: 0 auto;
+    flex-direction: column;
+  }
+}
+
+.job {
+  article {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 1rem;
+  }
+}
+
+.what-i-do {
+  max-width: 600px;
+}
+
+.job {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.job-date {
+  grid-column: 1;
+  margin: 0;
+  white-space: nowrap;
+  color: #666;
+}
+
+.job-content {
+  grid-column: 2;
+}
+
+.job-content h3 {
+  margin: 0 0 0.5rem;
+}
