@@ -1,0 +1,322 @@
+@font-face {
+  font-family: InterVariable;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: optional;
+  src: url("/fonts/InterVariable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  ascent-override: 90.49%;
+  descent-override: 22.56%;
+  line-gap-override: 0%;
+  size-adjust: 107.64%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: InterVariable, "Inter Fallback", sans-serif;
+  font-optical-sizing: auto;
+  font-feature-settings:
+    "liga" 1,
+    "calt" 1,
+    "cv01" 1,
+    "cv05" 1,
+    "cv09" 1,
+    "cv11" 1,
+    "ss03" 1;
+
+  background: #000;
+  color: #e0e0e0;
+}
+
+h1 {
+  color: #fff;
+  font-family: InterVariable, "Inter Fallback", sans-serif;
+  font-size: 40px;
+  font-style: normal;
+  font-variation-settings:
+    "opsz" 32,
+    "wght" 700;
+  font-weight: 700;
+  height: 40px;
+  letter-spacing: -1.6px;
+  line-height: 40px;
+  white-space-collapse: preserve;
+}
+
+p {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+}
+
+.wrapper {
+  padding: 0 20px;
+  margin: 0 auto;
+  max-width: 960px;
+}
+
+.soft {
+  color: rgb(153, 153, 153);
+}
+
+.hero {
+  position: relative;
+  display: block;
+  height: 200vh;
+  overflow: visible;
+  user-select: none;
+}
+
+.hero-sticky-container {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero .wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.hero h1 {
+  text-align: center;
+  margin: 0 auto;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
+}
+
+.job {
+  article {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 1rem;
+  }
+}
+
+.middle-section {
+  position: relative;
+  z-index: 2;
+  padding: 8rem 0; /* Increase padding for floating effect */
+  background: transparent;
+}
+
+.glass-card {
+  padding: 3rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(14px) saturate(220%) contrast(160%) brightness(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(220%) contrast(160%) brightness(120%);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 
+    0 0 40px rgba(0, 0, 0, 0.5), 
+    0 0 15px rgba(255, 255, 255, 0.08); /* Subtle edge glow */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glassy reflections polish */
+.glass-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  z-index: 2;
+}
+
+/* Clearer glass - subdued noise */
+.glass-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.02; /* Nearly invisible noise */
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+/* Ensure content stays above the noise */
+.glass-card * {
+  position: relative;
+  z-index: 1;
+}
+
+.what-i-do {
+  max-width: 600px;
+  padding-bottom: 2rem;
+  color: #ddd;
+}
+
+.job {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.job-date {
+  grid-column: 1;
+  margin: 0;
+  white-space: nowrap;
+  color: #777;
+}
+
+.job-content {
+  grid-column: 2;
+}
+
+.job-content h3 {
+  margin: 0 0 0.5rem;
+  color: #eee;
+}
+
+.company {
+  color: #888;
+  font-weight: 400;
+}
+
+.contact {
+  position: relative;
+  padding: 6rem 0;
+  max-width: 600px;
+}
+
+.contact h2 {
+  position: relative;
+  z-index: 1;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  margin-bottom: 1.5rem;
+  color: #fff;
+}
+
+.contact form {
+  position: relative;
+  z-index: 1;
+}
+
+.contact .form-status {
+  position: relative;
+  z-index: 1;
+}
+
+.contact .hidden {
+  display: none;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #999;
+  margin-bottom: 0.25rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-size: 16px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.form-group input:focus,
+.form-group textarea {
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.contact button[type="submit"] {
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  color: #000;
+  background: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.contact button[type="submit"]:hover {
+  opacity: 0.85;
+}
+
+.contact button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-status {
+  font-size: 14px;
+  min-height: 1.2em;
+}
+
+.form-status.success {
+  color: #4caf50;
+}
+
+.form-status.error {
+  color: #f44336;
+}
+
+.contact-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-wrapper .wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+/* Slick fade-in for lazy-loaded canvases */
+.canvas-fade-in {
+  animation: canvasFadeIn 1.6s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+  opacity: 0;
+}
+
+@keyframes canvasFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
