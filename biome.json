@@ -1,0 +1,18 @@
+{
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space"
+  },
+  "linter": {
+    "enabled": true
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!dist",
+      "!**/node_modules",
+      "!.pnp.cjs",
+      "!.pnp.loader.mjs"
+    ]
+  }
+}
