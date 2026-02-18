@@ -26,6 +26,7 @@ export function SpaceContactCanvas(): React.JSX.Element {
 	const rendererRef = useRef<WebGLRenderer | null>(null);
 	const frameIdRef = useRef<number>(0);
 	const isVisibleRef = useRef<boolean>(true);
+    const lastTimeRef = useRef<number>(0);
 
 	const starSystemRef = useRef<Points | null>(null);
     const networkRef = useRef<{
@@ -63,6 +64,7 @@ export function SpaceContactCanvas(): React.JSX.Element {
 				const wasVisible = isVisibleRef.current;
 				isVisibleRef.current = entry.isIntersecting;
 				if (entry.isIntersecting && !wasVisible && frameIdRef.current === 0) {
+                    lastTimeRef.current = performance.now();
 					frameIdRef.current = requestAnimationFrame(animate);
 				}
 			},
@@ -282,13 +284,18 @@ export function SpaceContactCanvas(): React.JSX.Element {
             colArr[i3+3] = r * intensity; colArr[i3+4] = g * intensity; colArr[i3+5] = b * intensity;
         }
 
-		function animate(time: number) {
+		function animate(now: number) {
 			if (!isVisibleRef.current) {
 				frameIdRef.current = 0;
 				return;
 			}
 			frameIdRef.current = requestAnimationFrame(animate);
-			const t = time * 0.001;
+
+            // Delta time calculation
+            const deltaTime = Math.min((now - lastTimeRef.current) / 1000, 0.1); 
+            lastTimeRef.current = now;
+
+			const t = now * 0.001;
 
 			if (starSystemRef.current) {
 				(starSystemRef.current.material as ShaderMaterial).uniforms.time.value = t;
@@ -305,18 +312,18 @@ export function SpaceContactCanvas(): React.JSX.Element {
                     0
                 );
 
+                const springStrength = 0.5 * deltaTime; // Normalized physics
+                const friction = Math.pow(0.5, deltaTime); // Exponential decay friction
+                const mouseAttraction = 500 * deltaTime; 
+                
                 nodes.forEach(node => {
-                    const springStrength = 0.012;
-                    const friction = 0.92; // Slightly more friction for control
-                    const mouseAttraction = 8.0; // MAXIMUM Gravitational Pull
+                    const dxSpring = node.basePos.x - node.pos.x;
+                    const dySpring = node.basePos.y - node.pos.y;
+                    const dzSpring = node.basePos.z - node.pos.z;
                     
-                    const springForceX = (node.basePos.x - node.pos.x) * springStrength;
-                    const springForceY = (node.basePos.y - node.pos.y) * springStrength;
-                    const springForceZ = (node.basePos.z - node.pos.z) * springStrength;
-                    
-                    node.vel.x += springForceX;
-                    node.vel.y += springForceY;
-                    node.vel.z += springForceZ;
+                    node.vel.x += dxSpring * springStrength;
+                    node.vel.y += dySpring * springStrength;
+                    node.vel.z += dzSpring * springStrength;
 
                     const dx = mousePos.x - node.pos.x;
                     const dy = mousePos.y - node.pos.y;
@@ -330,12 +337,14 @@ export function SpaceContactCanvas(): React.JSX.Element {
                         node.vel.y += (dy / dist) * strength;
                         node.vel.z += (dz / dist) * strength;
                     }
+                    
                     node.vel.x *= friction;
                     node.vel.y *= friction;
                     node.vel.z *= friction;
-                    node.pos.x += node.vel.x;
-                    node.pos.y += node.vel.y;
-                    node.pos.z += node.vel.z;
+                    
+                    node.pos.x += node.vel.x * 60 * deltaTime; // Normalize move to 60fps
+                    node.pos.y += node.vel.y * 60 * deltaTime;
+                    node.pos.z += node.vel.z * 60 * deltaTime;
                 });
 
                 if (edges && edgeAttribute && colorAttribute) {
@@ -369,13 +378,14 @@ export function SpaceContactCanvas(): React.JSX.Element {
                 }
             }
 
-			const parallaxSpeed = 0.12;
-			currentParallaxRef.current += (targetParallaxRef.current - currentParallaxRef.current) * parallaxSpeed;
+			const parallaxLerp = 1 - Math.pow(0.001, deltaTime);
+			currentParallaxRef.current += (targetParallaxRef.current - currentParallaxRef.current) * parallaxLerp;
 
+			const mouseFactor = 1 - Math.pow(0.0001, deltaTime);
 			const mouseX = mouseRef.current.x * 50; 
 			const mouseY = mouseRef.current.y * 50;
-			targetCameraPos.current.x += (mouseX - targetCameraPos.current.x) * 0.05;
-			targetCameraPos.current.y += (mouseY - targetCameraPos.current.y) * 0.05;
+			targetCameraPos.current.x += (mouseX - targetCameraPos.current.x) * mouseFactor;
+			targetCameraPos.current.y += (mouseY - targetCameraPos.current.y) * mouseFactor;
 
 			if (cameraRef.current) {
 				cameraRef.current.position.x = targetCameraPos.current.x;
@@ -387,6 +397,7 @@ export function SpaceContactCanvas(): React.JSX.Element {
 			renderer.render(scene, camera);
 		}
 
+        lastTimeRef.current = performance.now();
 		frameIdRef.current = requestAnimationFrame(animate);
 
 		return () => {

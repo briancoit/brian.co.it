@@ -72,10 +72,15 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 	const rendererRef = useRef<WebGLRenderer | null>(null);
 	const frameIdRef = useRef<number>(0);
 	const isVisibleRef = useRef<boolean>(true);
+    const lastTimeRef = useRef<number>(0);
 
 	const starSystemRef = useRef<Points | null>(null);
 	const nebulaRef = useRef<InstancedMesh | null>(null);
 	const shootingStarsRef = useRef<Group | null>(null);
+
+    // Pooling for shooting stars
+    const poolSize = 20;
+    const shootingStarPoolRef = useRef<Line[]>([]);
 
 	const mouseRef = useRef({ x: 0, y: 0 });
 	const targetCameraPos = useRef({ x: 0, y: 0 });
@@ -107,6 +112,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 				
 				// Re-start loop if it was stopped and we became visible
 				if (entry.isIntersecting && !wasVisible && frameIdRef.current === 0) {
+                    lastTimeRef.current = performance.now();
 					frameIdRef.current = requestAnimationFrame(animate);
 				}
 			},
@@ -126,16 +132,39 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 
 		const renderer = new WebGLRenderer({
 			alpha: false,
-			antialias: false, // Turned off for performance
+			antialias: false, 
 			powerPreference: "high-performance",
 		});
 		renderer.setSize(width, height);
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Reduced slightly
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 		containerRef.current.appendChild(renderer.domElement);
 
 		sceneRef.current = scene;
 		cameraRef.current = camera;
 		rendererRef.current = renderer;
+
+		// Initialize Shooting Star Pool
+		const shootingStars = new Group();
+		scene.add(shootingStars);
+		shootingStarsRef.current = shootingStars;
+        
+        for (let i = 0; i < poolSize; i++) {
+            const geometry = new BufferGeometry();
+            const positions = new Float32Array(6); // 2 points
+            const colors = new Float32Array(6);
+            geometry.setAttribute('position', new BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new BufferAttribute(colors, 3));
+            const material = new LineBasicMaterial({
+                vertexColors: true,
+                transparent: true,
+                opacity: 0,
+                blending: AdditiveBlending,
+                visible: false
+            });
+            const line = new Line(geometry, material);
+            shootingStarPoolRef.current.push(line);
+            shootingStars.add(line);
+        }
 
 		// 1. NEBULA SYSTEM (Instanced)
 		const cloudTexture = createCloudTexture();
@@ -232,7 +261,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 		nebulaRef.current = instancedNebula;
 
 		// 2. STARFIELD
-		const starCount = 12000; // Further reduced for performance
+		const starCount = 12000; 
 		const starGeo = new BufferGeometry();
 		const positions = new Float32Array(starCount * 3);
 		const starColorsArr = new Float32Array(starCount * 3);
@@ -333,11 +362,6 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 		scene.add(starSystem);
 		starSystemRef.current = starSystem;
 
-		// 3. SHOOTING STARS
-		const shootingStars = new Group();
-		scene.add(shootingStars);
-		shootingStarsRef.current = shootingStars;
-
 		const handleMouseMove = (e: MouseEvent) => {
 			const x = (e.clientX / window.innerWidth) * 2 - 1;
 			const y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -356,14 +380,18 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 			rendererRef.current.setSize(w, h);
 		}
 
-		function animate(time: number) {
+		function animate(now: number) {
 			if (!isVisibleRef.current) {
-				frameIdRef.current = 0; // Signal that loop is stopped
+				frameIdRef.current = 0; 
 				return;
 			}
 			frameIdRef.current = requestAnimationFrame(animate);
 
-			const t = time * 0.001;
+            // Delta time calculation
+            const deltaTime = Math.min((now - lastTimeRef.current) / 1000, 0.1); // Cap at 0.1s to prevent jumps after tab switch
+            lastTimeRef.current = now;
+
+			const t = now * 0.001;
 
 			if (starSystemRef.current) {
 				(starSystemRef.current.material as ShaderMaterial).uniforms.time.value = t;
@@ -375,18 +403,19 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                 nebulaRef.current.rotation.z = t * 0.01;
             }
 
-            if (shootingStarsRef.current && Math.random() < 0.004) {
-                spawnShootingStar(shootingStarsRef.current);
+            if (shootingStarsRef.current && Math.random() < 0.006) {
+                spawnShootingStarFromPool(shootingStarPoolRef.current);
             }
-            updateShootingStars(shootingStarsRef.current);
+            updateShootingStarsFromPool(shootingStarPoolRef.current, deltaTime);
 
-			const parallaxSpeed = 0.12;
-			currentParallaxRef.current += (targetParallaxRef.current - currentParallaxRef.current) * parallaxSpeed;
+			const parallaxLerp = 1 - Math.pow(0.001, deltaTime); // Frame-rate independent lerp
+			currentParallaxRef.current += (targetParallaxRef.current - currentParallaxRef.current) * parallaxLerp;
 
+			const mouseFactor = 1 - Math.pow(0.0001, deltaTime);
 			const mouseX = mouseRef.current.x * 50; 
 			const mouseY = mouseRef.current.y * 50;
-			targetCameraPos.current.x += (mouseX - targetCameraPos.current.x) * 0.05;
-			targetCameraPos.current.y += (mouseY - targetCameraPos.current.y) * 0.05;
+			targetCameraPos.current.x += (mouseX - targetCameraPos.current.x) * mouseFactor;
+			targetCameraPos.current.y += (mouseY - targetCameraPos.current.y) * mouseFactor;
 
 			if (cameraRef.current) {
                 const actualScroll = window.scrollY;
@@ -396,7 +425,10 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                 } else {
                     targetRotationRef.current = 0;
                 }
-                currentRotationRef.current += (targetRotationRef.current - currentRotationRef.current) * 0.05;
+                
+                const rotationLerp = 1 - Math.pow(0.01, deltaTime);
+                currentRotationRef.current += (targetRotationRef.current - currentRotationRef.current) * rotationLerp;
+                
                 const radius = 500;
                 const orbitalX = Math.sin(currentRotationRef.current) * radius;
                 const orbitalZ = Math.cos(currentRotationRef.current) * radius;
@@ -412,6 +444,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 			renderer.render(scene, camera);
 		}
 
+        lastTimeRef.current = performance.now();
 		frameIdRef.current = requestAnimationFrame(animate);
 
 		return () => {
@@ -428,6 +461,10 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 			nebulaGeo.dispose();
 			nebulaMat.dispose();
 			cloudTexture.dispose();
+            shootingStarPoolRef.current.forEach(line => {
+                line.geometry.dispose();
+                (line.material as Material).dispose();
+            });
 		};
 	}, []);
 
@@ -440,45 +477,54 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 	);
 }
 
-function spawnShootingStar(group: Group) {
-    const geometry = new BufferGeometry();
+function spawnShootingStarFromPool(pool: Line[]) {
+    // Find an inactive star
+    const star = pool.find(s => !s.userData.active);
+    if (!star) return;
+
     const trailLength = 10 + Math.random() * 20;
-    const positions = new Float32Array([-trailLength, 0, 0, 0, 0, 0]);
-    const colors = new Float32Array([0, 0, 0, 1, 1, 1]);
+    const positions = star.geometry.getAttribute('position') as BufferAttribute;
+    const colors = star.geometry.getAttribute('color') as BufferAttribute;
 
-    geometry.setAttribute('position', new BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new BufferAttribute(colors, 3));
+    positions.setXYZ(0, -trailLength, 0, 0);
+    positions.setXYZ(1, 0, 0, 0);
+    positions.needsUpdate = true;
 
-    const material = new LineBasicMaterial({
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.5, // Subtle
-        blending: AdditiveBlending,
-    });
+    colors.setXYZ(0, 0, 0, 0);
+    colors.setXYZ(1, 1, 1, 1);
+    colors.needsUpdate = true;
 
-    const line = new Line(geometry, material);
-    line.position.set((Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 1200, (Math.random() - 0.5) * 400 - 100);
     const speed = Math.random() * 15 + 25;
     const angle = -Math.PI / 6 - Math.random() * (Math.PI / 4);
     const velocity = new Vector3(Math.cos(angle) * speed, Math.sin(angle) * speed, 0);
 
-    line.userData = { velocity: velocity, life: 1.0 };
-    line.rotation.z = angle;
-    group.add(line);
+    star.position.set((Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 1200, (Math.random() - 0.5) * 400 - 100);
+    star.userData = { velocity: velocity, life: 1.0, active: true };
+    star.rotation.z = angle;
+    
+    const mat = star.material as LineBasicMaterial;
+    mat.opacity = 1.0;
+    mat.visible = true;
 }
 
-function updateShootingStars(group: Group | null) {
-    if (!group) return;
-    for (let i = group.children.length - 1; i >= 0; i--) {
-        const line = group.children[i] as Line;
-        const vel = line.userData.velocity as Vector3;
-        line.position.add(vel);
-        line.userData.life -= 0.015; // Slightly faster lifecycle
-        (line.material as LineBasicMaterial).opacity = line.userData.life;
-        if (line.userData.life <= 0) {
-            group.remove(line);
-            line.geometry.dispose();
-            (line.material as Material).dispose();
+function updateShootingStarsFromPool(pool: Line[], deltaTime: number) {
+    const lifeDecay = 1.2 * deltaTime; // Consistent decay
+    const speedFactor = 60 * deltaTime; // Normalize speed to 60fps base
+
+    pool.forEach(star => {
+        if (!star.userData.active) return;
+
+        const vel = star.userData.velocity as Vector3;
+        star.position.x += vel.x * speedFactor;
+        star.position.y += vel.y * speedFactor;
+        
+        star.userData.life -= lifeDecay;
+        const mat = star.material as LineBasicMaterial;
+        mat.opacity = Math.max(0, star.userData.life);
+        
+        if (star.userData.life <= 0) {
+            star.userData.active = false;
+            mat.visible = false;
         }
-    }
+    });
 }
