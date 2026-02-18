@@ -11,7 +11,6 @@ import {
 	Color,
 	FogExp2,
 	AdditiveBlending,
-	Mesh,
 	BufferGeometry,
 	BufferAttribute,
 	ShaderMaterial,
