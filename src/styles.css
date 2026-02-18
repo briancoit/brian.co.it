@@ -6,19 +6,10 @@
   src: url("/fonts/InterVariable.woff2") format("woff2");
 }
 
-@font-face {
-  font-family: "Inter Fallback";
-  src: local("Arial");
-  ascent-override: 90.49%;
-  descent-override: 22.56%;
-  line-gap-override: 0%;
-  size-adjust: 107.64%;
-}
-
 body {
   margin: 0;
   padding: 0;
-  font-family: InterVariable, "Inter Fallback", sans-serif;
+  font-family: InterVariable, sans-serif;
   font-optical-sizing: auto;
   font-feature-settings:
     "liga" 1,
@@ -35,7 +26,7 @@ body {
 
 h1 {
   color: #fff;
-  font-family: InterVariable, "Inter Fallback", sans-serif;
+  font-family: InterVariable, sans-serif;
   font-size: 40px;
   font-style: normal;
   font-variation-settings:
