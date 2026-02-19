@@ -203,7 +203,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     for (let i = 0; i < cloudCount; i++) {
       const color =
         nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
-      const opacity = 0.07 + Math.random() * 0.13;
+      const opacity = 0.12 + Math.random() * 0.15;
       const scale = 500 + Math.random() * 700;
 
       const angleStep = (Math.PI * 2) / cloudCount;
@@ -214,7 +214,9 @@ export function SpaceHeroCanvas(): React.JSX.Element {
         (Math.random() - 0.5) * 1000,
         Math.sin(angle) * dist,
       );
+      dummy.rotation.order = "ZYX";
       dummy.rotation.z = Math.random() * Math.PI * 2;
+      dummy.rotation.y = angle + Math.PI;
       dummy.scale.set(scale, scale, 1);
       dummy.updateMatrix();
       dummy.matrix.toArray(instanceMatrix.array, i * 16);
@@ -311,13 +313,18 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                     float shift = sin(uTime * 0.15 + vPhase) * 0.15;
                     vec3 shifted = vColor + vec3(shift * 0.3, shift * -0.1, shift * 0.2);
                     
-                    // Fast-moving noise highlights + strobe from single FBM
+                    // Fast-moving noise highlights
                     vec2 noiseUv = vUv * 4.0 + vec2(uTime * 0.8, uTime * 0.5) + vPhase;
                     float n = fbm(noiseUv);
                     float nNorm = n * 0.5 + 0.5;
                     float highlight = 0.4 + 0.6 * nNorm;
                     
-                    gl_FragColor = vec4(shifted, texColor.a * vOpacity * highlight);
+                    // Bright patches that fade in and out
+                    float flickerMask = smoothstep(0.55, 0.75, nNorm);
+                    float flickerPulse = sin(uTime * 1.5 + vPhase * 3.0 + n * 6.0) * 0.5 + 0.5;
+                    float flicker = flickerMask * flickerPulse * 0.6;
+                    
+                    gl_FragColor = vec4(shifted, texColor.a * vOpacity * (highlight + flicker));
                 }
             `,
       transparent: true,
@@ -511,7 +518,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
         (starSystemRef.current.material as ShaderMaterial).uniforms.time.value =
           t;
         starSystemRef.current.rotation.y = currentRotationRef.current * 0.8;
-        starSystemRef.current.position.y = scrollY;
+        starSystemRef.current.position.y = scrollY * 0.85;
       }
 
       if (nebulaRef.current) {
