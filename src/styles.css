@@ -99,26 +99,69 @@ p {
   position: relative;
   z-index: 10;
   padding: var(--section-padding) 0;
+  background: transparent;
 }
 
 .glass-card {
   padding: clamp(2rem, 5vw, 4rem);
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  border-radius: 24px;
-  box-shadow: var(--glass-shadow);
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.02) 30%,
+    rgba(255, 255, 255, 0.01) 60%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  backdrop-filter: blur(6px) saturate(150%) brightness(1.1);
+  -webkit-backdrop-filter: blur(6px) saturate(150%) brightness(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.22);
+  border-left-color: rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.4),
+    0 8px 32px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 80px rgba(255, 255, 255, 0.015);
   position: relative;
   overflow: hidden;
 }
 
-/* Subtle reflection line */
+/* Top-edge shimmer highlight */
 .glass-card::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 5%,
+    rgba(255, 255, 255, 0.4) 25%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.4) 75%,
+    transparent 95%
+  );
+  pointer-events: none;
+}
+
+/* Soft inner light / reflection */
+.glass-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      ellipse 60% 40% at 20% 0%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 30% at 80% 100%,
+      rgba(255, 255, 255, 0.03) 0%,
+      transparent 70%
+    );
   pointer-events: none;
 }
 
@@ -190,7 +233,7 @@ p {
   padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-radius: 6px;
   color: var(--text-primary);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -209,7 +252,7 @@ button[type="submit"] {
   background: var(--accent-color);
   color: #000;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
