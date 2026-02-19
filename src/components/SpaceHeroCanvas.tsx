@@ -283,11 +283,11 @@ export function SpaceHeroCanvas(): React.JSX.Element {
             const colorSeed = Math.random();
 			sizes[i] = seed < 0.8 ? 0.8 + Math.random() * 1.2 : 2.0 + Math.random() * 1.5;
 			phases[i] = Math.random() * Math.PI * 2;
-            frequencies[i] = 1.5 + Math.random() * 3.0;
+            frequencies[i] = 0.5 + Math.random() * 1.0; // Slightly faster breathing
             extraData[i * 4] = seed > 0.94 ? 1.0 : 0.0;
-            extraData[i * 4 + 1] = Math.random() < 0.15 ? 1.0 : 0.0;
-            extraData[i * 4 + 2] = 0.2 + Math.random() * 0.8;
-            extraData[i * 4 + 3] = Math.random() < 0.08 ? 0.4 + Math.random() * 0.4 : 0.0;
+            extraData[i * 4 + 1] = Math.random() < 0.2 ? 1.0 : 0.0; // Normal twinkle rate
+            extraData[i * 4 + 2] = 0.4 + Math.random() * 0.6; 
+            extraData[i * 4 + 3] = Math.random() < 0.08 ? 0.2 + Math.random() * 0.2 : 0.0; 
 
             let cR=1.0, cG=1.0, cB=1.0;
             if (colorSeed < 0.04) { cR=0.7; cG=0.8; cB=1.0; }
@@ -321,20 +321,25 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 				void main() {
 					vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
 					gl_Position = projectionMatrix * mvPosition;
-					gl_PointSize = size * pixelRatio * (600.0 / -mvPosition.z);
 					
-					float isTwink = extraData.y;
-					float twinkleBase = 0.5 + 0.5 * sin(time * frequency + phase);
-                    float twinkle = mix(1.0, twinkleBase, isTwink);
-                    
-					vAlpha = extraData.z * (0.15 + 1.35 * twinkle); 
-					gl_PointSize = gl_PointSize * (0.75 + 0.5 * twinkle);
-					gl_PointSize = max(gl_PointSize, 1.0 * pixelRatio);
+					// SHIMMER PREVENTION: Increase min size and remove pulse animation
+					gl_PointSize = size * pixelRatio * (600.0 / -mvPosition.z);
+					gl_PointSize = max(gl_PointSize, 2.0 * pixelRatio); 
+					
+					vAlpha = extraData.z; 
 					vGlow = extraData.x;
 					
+					// SELECTIVE TWINKLE (Subtle)
+					float isTwink = extraData.y;
+					float twinkleBase = 0.75 + 0.25 * sin(time * frequency + phase); 
+                    float twinkle = mix(1.0, twinkleBase, isTwink);
+                    
+					vAlpha = vAlpha * (0.4 + 1.0 * twinkle); 
+					gl_PointSize = gl_PointSize * (0.9 + 0.2 * twinkle); 
+					
                     float scin = extraData.w;
-                    float flicker = sin(time * 30.0 + phase * 10.0);
-                    vec3 scinColor = color * (1.0 + flicker * 0.15 * scin);
+                    float flicker = sin(time * 6.0 + phase * 10.0); 
+                    vec3 scinColor = color * (1.0 + flicker * 0.1 * scin);
                     vColor = mix(color, scinColor, scin);
 				}
 			`,
@@ -346,7 +351,9 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 					vec2 coord = gl_PointCoord - vec2(0.5);
 					float dist = length(coord);
 					if(dist > 0.5) discard;
-					float alpha = 1.0 - smoothstep(0.1, 0.45, dist);
+					
+					// SOFTER EDGES to prevent shimmering
+					float alpha = 1.0 - smoothstep(0.0, 0.48, dist);
 					float glow = vGlow * (1.0 - smoothstep(0.0, 0.5, dist)) * 0.6;
 					gl_FragColor = vec4(vColor, (alpha + glow) * vAlpha);
 				}
