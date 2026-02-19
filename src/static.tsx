@@ -28,9 +28,9 @@ export function reactPrerenderPlugin({
       const $ = load(html);
 
       // 2️⃣ Preload the font
-      $("head").prepend(
-        '<link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>',
-      );
+      // $("head").prepend(
+      //   '<link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>',
+      // );
 
       // 3️⃣ Inline CSS to eliminate render-blocking requests
       $('link[rel="stylesheet"]').each((_, el) => {
