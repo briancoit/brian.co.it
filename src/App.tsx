@@ -56,7 +56,7 @@ export function App() {
           </div>
         </div>
       </section>
-      <div className="middle-section">
+      <section className="middle-section">
         <div className="wrapper glass-card">
           <div className="what-i-do">
             <p>
@@ -77,8 +77,8 @@ export function App() {
           </div>
           <EmploymentHistory />
         </div>
-      </div>
-      <div className="contact-wrapper">
+      </section>
+      <section className="contact-wrapper">
         {/* <Suspense fallback={null}>
           <SpaceContactCanvas />
         </Suspense> */}
@@ -87,7 +87,7 @@ export function App() {
             <ContactForm />
           </Suspense>
         </div>
-      </div>
+      </section>
     </>
   );
 }

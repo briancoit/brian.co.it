@@ -74,6 +74,7 @@ p {
   position: relative;
   height: 200vh;
   overflow: visible;
+  user-select: none;
 }
 
 .hero-sticky-container {
