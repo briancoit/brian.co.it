@@ -19,17 +19,17 @@ export default defineConfig(({ command }) => ({
       },
     },
     terserOptions: {
-    compress: {
-      passes: 3,
-      drop_console: true,
-      drop_debugger: true,
-      pure_funcs: ["console.log"],
+      compress: {
+        passes: 3,
+        drop_console: true,
+        drop_debugger: true,
+        pure_funcs: ["console.log"],
+      },
+      mangle: {
+        toplevel: true,
+      },
+      format: { comments: false },
     },
-    mangle: {
-    toplevel: true,
-  },
-    format: { comments: false },
-  },
   },
   resolve: {
     alias: {
