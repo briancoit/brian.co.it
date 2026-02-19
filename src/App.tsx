@@ -5,18 +5,20 @@ import {
   useEffect
 } from "react";
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
+import { SpaceHeroCanvas } from "./components/SpaceHeroCanvas";
+import { ContactForm } from "./components/ContactForm/ContactForm";
 
-const ContactForm = lazy(() =>
-  import(/* @vite-preload */ "./components/ContactForm/ContactForm").then(({ContactForm}) => ({
-    default: ContactForm,
-  })),
-);
+// const ContactForm = lazy(() =>
+//   import(/* @vite-preload */ "./components/ContactForm/ContactForm").then(({ContactForm}) => ({
+//     default: ContactForm,
+//   })),
+// );
 
-const SpaceHeroCanvas = lazy(() =>
-  import(/* @vite-preload */ "./components/SpaceHeroCanvas").then(({SpaceHeroCanvas}) => ({
-    default: SpaceHeroCanvas,
-  })),
-);
+// const SpaceHeroCanvas = lazy(() =>
+//   import(/* @vite-preload */ "./components/SpaceHeroCanvas").then(({SpaceHeroCanvas}) => ({
+//     default: SpaceHeroCanvas,
+//   })),
+// );
 
 // const SpaceContactCanvas = lazy(() =>
 //   import(/* @vite-preload */ "./components/SpaceContactCanvas").then(({SpaceContactCanvas}) => ({
