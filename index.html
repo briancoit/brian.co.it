@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>brian.co.it</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>Brian Coit – Principal Software Engineer</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link href="/src/reset.css" rel="stylesheet" />
-    <link href="/src/styles.css" rel="stylesheet" />
-    <script type="module" data-dev-only>
-      if (import.meta.env.MODE === 'development') {
-        document.title = document.title + " (localhost)";
-      }
-    </script>
-    <!-- Google tag (gtag.js) -->
+    <link rel="stylesheet" href="/styles.css">
+
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://www.google-analytics.com">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-BSN615WT3L"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-BSN615WT3L');
+    </script>
+
+    <script type="module" data-dev-only>
+      if (import.meta.env.MODE === 'development') {
+        document.title = document.title + " (localhost)";
+      }
     </script>
   </head>
   <body>
