@@ -5,7 +5,8 @@ import { reactPrerenderPlugin } from "./src/static";
 
 export default defineConfig(({ command }) => ({
   build: {
-    minify: true,
+    minify: "terser",
+    sourcemap: true,
     cssCodeSplit: false,
     rollupOptions: {
       treeshake: {
@@ -13,11 +14,19 @@ export default defineConfig(({ command }) => ({
         moduleSideEffects: false,
         propertyReadSideEffects: false,
         tryCatchDeoptimization: false,
+        annotations: true,
       },
-      output: {
-        // Remove manual chunking to see if Vite can optimize better
-      }
-    }
+    },
+    terserOptions: {
+    compress: {
+      passes: 3,
+      drop_console: true,
+      drop_debugger: true,
+      pure_funcs: ["console.log"],
+    },
+    mangle: true,
+    format: { comments: false },
+  },
   },
   resolve: {
     alias: {
