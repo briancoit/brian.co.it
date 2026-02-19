@@ -1,0 +1,36 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Layered neon glow filter -->
+    <filter id="ultraGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <!-- Outer purple haze -->
+      <feGaussianBlur in="SourceAlpha" stdDeviation="60" result="purpleGlow"/>
+      <feFlood flood-color="#8000ff" flood-opacity="0.4"/>
+      <feComposite in2="purpleGlow" operator="in" result="purpleGlowColored"/>
+
+      <!-- Cyan inner glow -->
+      <feGaussianBlur in="SourceAlpha" stdDeviation="30" result="cyanGlow"/>
+      <feFlood flood-color="#00ffff" flood-opacity="0.7"/>
+      <feComposite in2="cyanGlow" operator="in" result="cyanGlowColored"/>
+
+      <!-- Merge glows with original -->
+      <feMerge>
+        <feMergeNode in="purpleGlowColored"/>
+        <feMergeNode in="cyanGlowColored"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- White square outline with ultra neon glow -->
+  <rect x="100" y="100" width="824" height="824" rx="128" ry="128" fill="none" stroke="#ffffff" stroke-width="40" filter="url(#ultraGlow)"/>
+
+  <!-- Official LinkedIn 'in' letterforms, scaled and centered -->
+  <g transform="translate(-9571.84,-451.52) scale(10.7759)" fill="#ffffff">
+    <!-- n letterform -->
+    <path d="M958.98,112.559h-9.6V97.525c0-3.585-.064-8.2-4.993-8.2-5,0-5.765,3.906-5.765,7.939v15.294h-9.6V81.642h9.216v4.225h.129a10.1,10.1,0,0,1,9.093-4.994c9.73,0,11.524,6.4,11.524,14.726Z"/>
+    <!-- i bar -->
+    <path d="M922.99,112.559h-9.61V81.642h9.61Z"/>
+    <!-- i dot -->
+    <path d="M918.19,77.416a5.571,5.571,0,1,1,5.57-5.572,5.571,5.571,0,0,1-5.57,5.572"/>
+  </g>
+</svg>

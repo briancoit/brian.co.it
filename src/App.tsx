@@ -56,8 +56,8 @@ export function App() {
         </div>
       </section>
       <section className="middle-section">
-        <div className="wrapper glass-card fade-mask">
-          <div className="what-i-do">
+        <div className="wrapper bento-grid">
+          <div className="bento-card bento-card--bio">
             <p>
               I build software that works and lasts. I've led teams, shipped
               cloud platforms, and improved code, all with one goal: make things

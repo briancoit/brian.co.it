@@ -1,8 +1,10 @@
 import { EmploymentHistoryItem } from "./EmploymentHistoryItem";
+import LinkedInIcon from "../../linkedin.svg?react";
 
 export function EmploymentHistory() {
   return (
     <div>
+    <div className="timeline" role="list">
       <EmploymentHistoryItem
         title="Principal Engineer"
         company="Dare International"
@@ -39,6 +41,8 @@ export function EmploymentHistory() {
         dateStart={new Date("2010-03-01")}
         dateEnd={new Date("2012-03-01")}
       /> */}
+    </div>
+    <LinkedInIcon width={48} height={48} />
     </div>
   );
 }

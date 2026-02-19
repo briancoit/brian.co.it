@@ -27,7 +27,7 @@ export function EmploymentHistoryItem({
   const id = useId();
 
   return (
-    <section className="job" aria-labelledby={id}>
+    <div className="timeline-item" role="listitem">
       {dateStart || dateEnd ? (
         <p className="job-date">
           {dateStart ? <Time date={dateStart} /> : "unknown"}
@@ -42,7 +42,7 @@ export function EmploymentHistoryItem({
         </h3>
         {description ? <p>{description}</p> : null}
       </div>
-    </section>
+    </div>
   );
 }
 
