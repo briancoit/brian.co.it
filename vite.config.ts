@@ -7,6 +7,7 @@ export default defineConfig(({ command }) => ({
   build: {
     minify: "terser",
     sourcemap: true,
+    target: "es2020",
     cssCodeSplit: false,
     rollupOptions: {
       treeshake: {
@@ -24,7 +25,9 @@ export default defineConfig(({ command }) => ({
       drop_debugger: true,
       pure_funcs: ["console.log"],
     },
-    mangle: true,
+    mangle: {
+    toplevel: true,
+  },
     format: { comments: false },
   },
   },
