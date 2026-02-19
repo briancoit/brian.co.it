@@ -11,7 +11,7 @@
 | Bundler         | Vite 7 with SWC (`@vitejs/plugin-react-swc`)             |
 | Language        | TypeScript (strict mode)                                  |
 | 3D              | Three.js for space/starfield backgrounds                  |
-| Styling         | Vanilla CSS — no Tailwind, no CSS-in-JS                   |
+| Styling         | **CSS Modules** (preferred) — no Tailwind, no CSS-in-JS   |
 | Linter/Formatter| Biome (`biome check` / `biome format`)                    |
 | Hosting         | Netlify with CSP headers and immutable asset caching      |
 | SSR             | Custom Vite plugin prerenders HTML at build time (`static.tsx`) |
@@ -55,7 +55,7 @@ src/
 - **Linting**: Biome. Run `yarn lint` to check.
 - **Exports**: Named exports only (no default exports) — required by the lazy-loading pattern in `App.tsx`.
 - **TypeScript**: Strict mode. Explicit return types on exported components (`React.JSX.Element`).
-- **CSS**: Vanilla CSS with custom properties in `:root`. Mobile breakpoint at `768px`. Glassmorphism aesthetic.
+- **CSS**: **CSS Modules** (`.module.css`) preferred for component styles. Global styles and CSS custom properties live in `styles.css` (legacy, being migrated). Mobile breakpoint at `768px`. Glassmorphism aesthetic. No Tailwind, no CSS-in-JS.
 - **No new dependencies** without discussion — the bundle is aggressively optimised.
 
 ## Performance Notes
