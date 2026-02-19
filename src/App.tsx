@@ -7,22 +7,22 @@ import {
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
 
 const ContactForm = lazy(() =>
-  import("./components/ContactForm/ContactForm").then(({ContactForm}) => ({
+  import(/* @vite-preload */ "./components/ContactForm/ContactForm").then(({ContactForm}) => ({
     default: ContactForm,
   })),
 );
 
 const SpaceHeroCanvas = lazy(() =>
-  import("./components/SpaceHeroCanvas").then(({SpaceHeroCanvas}) => ({
+  import(/* @vite-preload */ "./components/SpaceHeroCanvas").then(({SpaceHeroCanvas}) => ({
     default: SpaceHeroCanvas,
   })),
 );
 
-const SpaceContactCanvas = lazy(() =>
-  import("./components/SpaceContactCanvas").then(({SpaceContactCanvas}) => ({
-    default: SpaceContactCanvas,
-  })),
-);
+// const SpaceContactCanvas = lazy(() =>
+//   import(/* @vite-preload */ "./components/SpaceContactCanvas").then(({SpaceContactCanvas}) => ({
+//     default: SpaceContactCanvas,
+//   })),
+// );
 
 export function App() {
   const [heroOpacity, setHeroOpacity] = useState(1);
