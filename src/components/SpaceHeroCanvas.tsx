@@ -425,7 +425,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 
 			if (cameraRef.current) {
                 const actualScroll = window.scrollY;
-                const rotationThreshold = 400;
+                const rotationThreshold = 800;
                 if (actualScroll > rotationThreshold) {
                     targetRotationRef.current = (actualScroll - rotationThreshold) * 0.0015;
                 } else {
