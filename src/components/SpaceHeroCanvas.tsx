@@ -203,7 +203,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     for (let i = 0; i < cloudCount; i++) {
       const color =
         nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
-      const opacity = 0.12 + Math.random() * 0.13;
+      const opacity = 0.09 + Math.random() * 0.11;
       const scale = 500 + Math.random() * 700;
 
       const angle = Math.random() * Math.PI * 2;
@@ -281,17 +281,42 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                 varying vec3 vColor;
                 varying float vOpacity;
                 varying float vPhase;
+
+                // Hash-based pseudo-noise
+                vec2 hash(vec2 p) {
+                    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+                    return -1.0 + 2.0 * fract(sin(p) * 43758.5453);
+                }
+                float noise(vec2 p) {
+                    vec2 i = floor(p);
+                    vec2 f = fract(p);
+                    vec2 u = f * f * (3.0 - 2.0 * f);
+                    return mix(mix(dot(hash(i), f),
+                                   dot(hash(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)), u.x),
+                               mix(dot(hash(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)),
+                                   dot(hash(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)), u.x), u.y);
+                }
+                float fbm(vec2 p) {
+                    float v = 0.0;
+                    v += 0.5 * noise(p); p *= 2.1;
+                    v += 0.25 * noise(p); p *= 2.3;
+                    v += 0.125 * noise(p);
+                    return v;
+                }
+
                 void main() {
                     vec4 texColor = texture2D(uMap, vUv);
                     
-                    // Subtle color shift over time — aurora shimmer between hues
+                    // Subtle color shift over time
                     float shift = sin(uTime * 0.15 + vPhase) * 0.15;
                     vec3 shifted = vColor + vec3(shift * 0.3, shift * -0.1, shift * 0.2);
                     
-                    // Vertical curtain effect — brighter in vertical streaks
-                    float curtain = 0.8 + 0.2 * sin(vUv.x * 12.0 + uTime * 0.3 + vPhase * 5.0);
+                    // Fast-moving noise highlights
+                    vec2 noiseUv = vUv * 4.0 + vec2(uTime * 0.8, uTime * 0.5) + vPhase;
+                    float n = fbm(noiseUv) * 0.5 + 0.5;
+                    float highlight = 0.85 + 0.3 * n;
                     
-                    gl_FragColor = vec4(shifted, texColor.a * vOpacity * curtain);
+                    gl_FragColor = vec4(shifted, texColor.a * vOpacity * highlight);
                 }
             `,
       transparent: true,
