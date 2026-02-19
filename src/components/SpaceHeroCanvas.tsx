@@ -82,6 +82,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     const shootingStarPoolRef = useRef<Line[]>([]);
 
 	const mouseRef = useRef({ x: 0, y: 0 });
+	const mouseInitializedRef = useRef(false);
 	const targetCameraPos = useRef({ x: 0, y: 0 });
 	const targetParallaxRef = useRef(0);
 	const currentParallaxRef = useRef(0);
@@ -371,6 +372,10 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 		const handleMouseMove = (e: MouseEvent) => {
 			const x = (e.clientX / window.innerWidth) * 2 - 1;
 			const y = -(e.clientY / window.innerHeight) * 2 + 1;
+			if (!mouseInitializedRef.current) {
+				mouseInitializedRef.current = true;
+				targetCameraPos.current = { x: x * 50, y: y * 50 };
+			}
 			mouseRef.current = { x, y };
 		};
 
@@ -399,9 +404,25 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 
 			const t = now * 0.001;
 
+			// Update scroll rotation early so stars and camera use the same value
+			const actualScroll = window.scrollY;
+			const rotationThreshold = 800;
+			if (actualScroll > rotationThreshold) {
+				targetRotationRef.current = (actualScroll - rotationThreshold) * 0.0015;
+			} else {
+				targetRotationRef.current = 0;
+			}
+			const rotationLerp = 1 - Math.pow(0.01, deltaTime);
+			currentRotationRef.current += (targetRotationRef.current - currentRotationRef.current) * rotationLerp;
+
+			const parallaxLerp = 1 - Math.pow(0.001, deltaTime);
+			currentParallaxRef.current += (targetParallaxRef.current - currentParallaxRef.current) * parallaxLerp;
+			const scrollY = -currentParallaxRef.current * 1000;
+
 			if (starSystemRef.current) {
 				(starSystemRef.current.material as ShaderMaterial).uniforms.time.value = t;
-				starSystemRef.current.rotation.y = t * 0.02;
+				starSystemRef.current.rotation.y = currentRotationRef.current * 0.8;
+				starSystemRef.current.position.y = scrollY;
 			}
 
             if (nebulaRef.current) {
@@ -414,9 +435,6 @@ export function SpaceHeroCanvas(): React.JSX.Element {
             }
             updateShootingStarsFromPool(shootingStarPoolRef.current, deltaTime);
 
-			const parallaxLerp = 1 - Math.pow(0.001, deltaTime); // Frame-rate independent lerp
-			currentParallaxRef.current += (targetParallaxRef.current - currentParallaxRef.current) * parallaxLerp;
-
 			const mouseFactor = 1 - Math.pow(0.0001, deltaTime);
 			const mouseX = mouseRef.current.x * 50; 
 			const mouseY = mouseRef.current.y * 50;
@@ -424,24 +442,13 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 			targetCameraPos.current.y += (mouseY - targetCameraPos.current.y) * mouseFactor;
 
 			if (cameraRef.current) {
-                const actualScroll = window.scrollY;
-                const rotationThreshold = 800;
-                if (actualScroll > rotationThreshold) {
-                    targetRotationRef.current = (actualScroll - rotationThreshold) * 0.0015;
-                } else {
-                    targetRotationRef.current = 0;
-                }
-                
-                const rotationLerp = 1 - Math.pow(0.01, deltaTime);
-                currentRotationRef.current += (targetRotationRef.current - currentRotationRef.current) * rotationLerp;
-                
+                const baseOrbit = t * 0.02;
                 const radius = 500;
-                const orbitalX = Math.sin(currentRotationRef.current) * radius;
-                const orbitalZ = Math.cos(currentRotationRef.current) * radius;
+                const orbitalX = Math.sin(currentRotationRef.current + baseOrbit) * radius;
+                const orbitalZ = Math.cos(currentRotationRef.current + baseOrbit) * radius;
                 
                 cameraRef.current.position.x = orbitalX + targetCameraPos.current.x;
                 cameraRef.current.position.z = orbitalZ;
-				const scrollY = -currentParallaxRef.current * 1000;
 				cameraRef.current.position.y = scrollY + targetCameraPos.current.y;
 				cameraRef.current.up.set(0, 1, 0);
 				cameraRef.current.lookAt(0, scrollY, 0);
@@ -479,7 +486,17 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 			ref={containerRef}
 			className="canvas-fade-in"
 			style={{ position: "fixed", inset: 0, zIndex: -1, background: "#000" }}
-		/>
+		>
+			<div style={{
+				position: "absolute",
+				left: 0,
+				right: 0,
+				bottom: 0,
+				height: "30%",
+				background: "linear-gradient(to bottom, transparent, #000)",
+				pointerEvents: "none",
+			}} />
+		</div>
 	);
 }
 
