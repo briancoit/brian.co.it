@@ -192,7 +192,9 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 			const opacity = 0.07 + Math.random() * 0.13;
 			const scale = 500 + Math.random() * 700; 
             
-            dummy.position.set((Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 1000, -200 - Math.random() * 800);
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 400 + Math.random() * 600;
+            dummy.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 1000, Math.sin(angle) * dist);
             dummy.rotation.z = Math.random() * Math.PI * 2;
             dummy.scale.set(scale, scale, 1);
             dummy.updateMatrix();
