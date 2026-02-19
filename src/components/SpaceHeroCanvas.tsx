@@ -316,7 +316,11 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                     float n = fbm(noiseUv) * 0.5 + 0.5;
                     float highlight = 0.85 + 0.3 * n;
                     
-                    gl_FragColor = vec4(shifted, texColor.a * vOpacity * highlight);
+                    // Occasional bright strobe patches
+                    float strobeNoise = fbm(noiseUv * 0.7 + vec2(uTime * 1.5, uTime * -0.9));
+                    float strobe = smoothstep(0.25, 0.4, strobeNoise) * 0.5;
+                    
+                    gl_FragColor = vec4(shifted, texColor.a * vOpacity * (highlight + strobe));
                 }
             `,
       transparent: true,

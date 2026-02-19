@@ -1,12 +1,7 @@
-import {
-  lazy,
-  Suspense,
-  useState,
-  useEffect
-} from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { ContactForm } from "./components/ContactForm/ContactForm";
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
 import { SpaceHeroCanvas } from "./components/SpaceHeroCanvas";
-import { ContactForm } from "./components/ContactForm/ContactForm";
 
 // const ContactForm = lazy(() =>
 //   import(/* @vite-preload */ "./components/ContactForm/ContactForm").then(({ContactForm}) => ({
@@ -49,7 +44,8 @@ export function App() {
           </Suspense>
           <div className="wrapper" style={{ opacity: heroOpacity }}>
             <h1>
-              brian<span className="soft">coit</span><br />
+              brian<span className="soft">coit</span>
+              <br />
               Hi, I'm Brian.{" "}
               <div className="soft">
                 Principal Software Engineer. Let's get to work.
@@ -59,12 +55,12 @@ export function App() {
         </div>
       </section>
       <section className="middle-section">
-        <div className="wrapper glass-card">
+        <div className="wrapper glass-card fade-mask">
           <div className="what-i-do">
             <p>
-              I build software that works and lasts. I've led teams, shipped cloud
-              platforms, and improved code, all with one goal: make things run
-              well.
+              I build software that works and lasts. I've led teams, shipped
+              cloud platforms, and improved code, all with one goal: make things
+              run well.
             </p>
             <p>
               No fluff, no endless meetings—just focused effort. I care about

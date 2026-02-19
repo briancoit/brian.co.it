@@ -5,18 +5,24 @@
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-muted: rgba(255, 255, 255, 0.5);
   --accent-color: #ffffff;
-  
+
   /* Glassmorphism */
-  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  --glass-bg: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.03)
+  );
   --glass-border: rgba(255, 255, 255, 0.2);
   --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  
+
   /* Spacing */
   --section-padding: clamp(4rem, 10vh, 8rem);
   --container-max-width: 1100px;
-  
+
   /* Typography */
-  --font-main: "InterVariable", "Inter Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-main:
+    "InterVariable", "Inter Fallback", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
   --lh-base: 1.6;
 }
 
@@ -35,7 +41,9 @@ body {
 }
 
 /* Typography Enhancements */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   color: var(--text-primary);
   line-height: 1.2;
   letter-spacing: -0.03em;
@@ -91,7 +99,7 @@ p {
 .hero h1 {
   text-align: center;
   max-width: 900px;
-  text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 /* Glass Card */
@@ -256,7 +264,9 @@ button[type="submit"] {
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 button[type="submit"]:hover {
@@ -280,8 +290,12 @@ button[type="submit"]:disabled {
   text-align: center;
 }
 
-.form-status.success { color: #4ade80; }
-.form-status.error { color: #f87171; }
+.form-status.success {
+  color: #4ade80;
+}
+.form-status.error {
+  color: #f87171;
+}
 
 /* Canvas Animations */
 .canvas-fade-in {
@@ -289,12 +303,20 @@ button[type="submit"]:disabled {
 }
 
 @keyframes canvasFadeIn {
-  from { opacity: 0; filter: blur(20px); }
-  to { opacity: 1; filter: blur(0); }
+  from {
+    opacity: 0;
+    filter: blur(20px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
 }
 
 /* Utilities */
-.hidden { display: none; }
+.hidden {
+  display: none;
+}
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
@@ -302,12 +324,29 @@ button[type="submit"]:disabled {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-  
+
   .wrapper {
     padding: 0 1.5rem;
   }
-  
+
   .glass-card {
     padding: 2rem 1.5rem;
   }
+}
+
+.fade-mask {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 40px,
+    black calc(100% - 40px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 40px,
+    black calc(100% - 40px),
+    transparent 100%
+  );
 }
