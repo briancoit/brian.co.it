@@ -1,13 +1,21 @@
-import type { ReactNode } from "react";
 import { buildSafeId } from "../../util/id";
 
 export type EmploymentHistoryItemProps = {
-  dateStart?: string;
-  dateEnd?: string;
+  dateStart?: Date;
+  dateEnd?: Date;
   title: string;
   company: string;
-  description?: ReactNode;
+  description?: React.ReactNode;
 };
+
+const DATE_FORMATTER_DATETIME_ATTR = new Intl.DateTimeFormat("en-GB", {
+  year: "numeric",
+  month: "2-digit",
+});
+const DATE_FORMATTER_DISPLAY = new Intl.DateTimeFormat("en-GB", {
+  year: "2-digit",
+  month: "short",
+});
 
 export function EmploymentHistoryItem({
   title,
@@ -15,16 +23,16 @@ export function EmploymentHistoryItem({
   dateEnd,
   dateStart,
   description,
-}: EmploymentHistoryItemProps) {
+}: EmploymentHistoryItemProps): React.JSX.Element {
   const id = buildSafeId(title);
 
   return (
     <section className="job" aria-labelledby={id}>
       {dateStart || dateEnd ? (
         <p className="job-date">
-          <time dateTime={dateStart}>{dateStart}</time>
+          {dateStart ? <Time date={dateStart} /> : "unknown"}
           {" - "}
-          <time dateTime={dateEnd}>{dateEnd}</time>
+          {dateEnd ? <Time date={dateEnd} /> : "Present"}
         </p>
       ) : null}
 
@@ -35,5 +43,21 @@ export function EmploymentHistoryItem({
         {description ? <p>{description}</p> : null}
       </div>
     </section>
+  );
+}
+
+type TimeProps = {
+  date: Date;
+};
+
+function Time({ date }: TimeProps): React.JSX.Element {
+  return (
+    <time
+      dateTime={
+        DATE_FORMATTER_DATETIME_ATTR.format(date).replace(/\//, "-") 
+      }
+    >
+      {DATE_FORMATTER_DISPLAY.format(date)}
+    </time>
   );
 }

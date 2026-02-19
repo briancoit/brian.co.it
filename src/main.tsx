@@ -1,16 +1,19 @@
 import { createRoot, hydrateRoot } from "react-dom/client";
 import { App } from "./App";
 
-const element = document.getElementById("app");
+const rootElement = document.getElementById("app");
 
-if (!element) {
-  throw new Error("No root element found");
+if (!rootElement) {
+  throw new Error("No root element #app found");
 }
 
-if (element.hasChildNodes()) {
-  hydrateRoot(element, <App />);
-} else {
-  if (import.meta.env.DEV) {
-    createRoot(element).render(<App />);
+if (rootElement.hasChildNodes()) {
+  const hydrate = () => hydrateRoot(rootElement, <App />);
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(hydrate);
+  } else {
+    setTimeout(hydrate, 1);
   }
+} else {
+  createRoot(rootElement).render(<App />);
 }

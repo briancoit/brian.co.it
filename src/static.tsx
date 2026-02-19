@@ -27,11 +27,31 @@ export function reactPrerenderPlugin({
       const html = fs.readFileSync(indexHtmlFile, "utf-8");
       const $ = load(html);
 
-      // 2️⃣ Render React and inject
+      // 2️⃣ Preload the font
+      $("head").prepend(
+        '<link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>',
+      );
+
+      // 3️⃣ Inline CSS to eliminate render-blocking requests
+      $('link[rel="stylesheet"]').each((_, el) => {
+        const href = $(el).attr("href");
+        if (!href) return;
+        const cssPath = path.join(outDir, href);
+        if (fs.existsSync(cssPath)) {
+          const css = fs.readFileSync(cssPath, "utf-8");
+          $(el).replaceWith(`<style>${css}</style>`);
+          fs.unlinkSync(cssPath);
+        }
+      });
+
+      // 4️⃣ Render React and inject
       const reactHtml = ReactDOMServer.renderToString(<App />);
       $("#app").append(reactHtml);
 
-      // 3️⃣ Minify if requested
+      // remove any dev only scripts
+      $('script[data-dev-only]').remove();
+
+      // 5️⃣ Minify if requested
       const output = minify
         ? await minifyHtml($.html(), {
             collapseWhitespace: true,
@@ -41,7 +61,7 @@ export function reactPrerenderPlugin({
           })
         : $.html();
 
-      // 4️⃣ Overwrite the built HTML
+      // 6️⃣ Overwrite the built HTML
       fs.writeFileSync(indexHtmlFile, output);
     },
   };
