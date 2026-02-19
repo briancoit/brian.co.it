@@ -26,8 +26,8 @@ import {
 
 // Generate a soft "cloud/puff" texture for the nebulae
 function createCloudTexture(): Texture {
-  const textWidth = 1024;
-  const textHeight = 1024;
+  const textWidth = 512;
+  const textHeight = 512;
   const canvas = document.createElement("canvas");
   canvas.width = textWidth;
   canvas.height = textHeight;
@@ -170,9 +170,9 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     // 1. NEBULA SYSTEM (Instanced)
     const cloudTexture = createCloudTexture();
     const nebulaColors = [
-      new Color("#4c1d95"),
+      new Color("#7b2fca"),
       new Color("#065f46"),
-      new Color("#312e81"),
+      new Color("#5348b8"),
       new Color("#164e63"),
     ];
     const cloudCount = 50;
@@ -203,10 +203,11 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     for (let i = 0; i < cloudCount; i++) {
       const color =
         nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
-      const opacity = 0.09 + Math.random() * 0.11;
+      const opacity = 0.07 + Math.random() * 0.13;
       const scale = 500 + Math.random() * 700;
 
-      const angle = Math.random() * Math.PI * 2;
+      const angleStep = (Math.PI * 2) / cloudCount;
+      const angle = i * angleStep + (Math.random() - 0.5) * angleStep * 0.8;
       const dist = 400 + Math.random() * 600;
       dummy.position.set(
         Math.cos(angle) * dist,
@@ -261,7 +262,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                     float surge = pow(max(0.0, surgeWave), 2.0);
                     
                     float combinedPulse = (slow + 0.5 * med + 0.25 * fast) / 1.75;
-                    float brightness = 0.5 + 0.5 * combinedPulse + surge * 1.5;
+                    float brightness = 0.8 + 0.4 * combinedPulse + surge * 0.4;
                     
                     float entranceDelay = 1.0;
                     float entranceProgress = clamp((uTime - entranceDelay) * 0.5, 0.0, 1.0);
@@ -299,8 +300,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                 float fbm(vec2 p) {
                     float v = 0.0;
                     v += 0.5 * noise(p); p *= 2.1;
-                    v += 0.25 * noise(p); p *= 2.3;
-                    v += 0.125 * noise(p);
+                    v += 0.25 * noise(p);
                     return v;
                 }
 
@@ -311,16 +311,13 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                     float shift = sin(uTime * 0.15 + vPhase) * 0.15;
                     vec3 shifted = vColor + vec3(shift * 0.3, shift * -0.1, shift * 0.2);
                     
-                    // Fast-moving noise highlights
+                    // Fast-moving noise highlights + strobe from single FBM
                     vec2 noiseUv = vUv * 4.0 + vec2(uTime * 0.8, uTime * 0.5) + vPhase;
-                    float n = fbm(noiseUv) * 0.5 + 0.5;
-                    float highlight = 0.85 + 0.3 * n;
+                    float n = fbm(noiseUv);
+                    float nNorm = n * 0.5 + 0.5;
+                    float highlight = 0.4 + 0.6 * nNorm;
                     
-                    // Occasional bright strobe patches
-                    float strobeNoise = fbm(noiseUv * 0.7 + vec2(uTime * 1.5, uTime * -0.9));
-                    float strobe = smoothstep(0.25, 0.4, strobeNoise) * 0.5;
-                    
-                    gl_FragColor = vec4(shifted, texColor.a * vOpacity * (highlight + strobe));
+                    gl_FragColor = vec4(shifted, texColor.a * vOpacity * highlight);
                 }
             `,
       transparent: true,
@@ -522,7 +519,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
         nebulaRef.current.rotation.z = t * 0.01;
       }
 
-      if (shootingStarsRef.current && Math.random() < 0.006) {
+      if (shootingStarsRef.current && Math.random() < 0.015) {
         spawnShootingStarFromPool(shootingStarPoolRef.current);
       }
       updateShootingStarsFromPool(shootingStarPoolRef.current, deltaTime);
@@ -615,7 +612,7 @@ function spawnShootingStarFromPool(pool: Line[]) {
   colors.setXYZ(1, 1, 1, 1);
   colors.needsUpdate = true;
 
-  const speed = Math.random() * 15 + 25;
+  const speed = Math.random() * 10 + 20;
   const angle = -Math.PI / 6 - Math.random() * (Math.PI / 4);
   const velocity = new Vector3(
     Math.cos(angle) * speed,
