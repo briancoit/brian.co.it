@@ -1,4 +1,4 @@
-import { buildSafeId } from "../../util/id";
+import { useId } from "react";
 
 export type EmploymentHistoryItemProps = {
   dateStart?: Date;
@@ -24,7 +24,7 @@ export function EmploymentHistoryItem({
   dateStart,
   description,
 }: EmploymentHistoryItemProps): React.JSX.Element {
-  const id = buildSafeId(title);
+  const id = useId();
 
   return (
     <section className="job" aria-labelledby={id}>
@@ -53,9 +53,7 @@ type TimeProps = {
 function Time({ date }: TimeProps): React.JSX.Element {
   return (
     <time
-      dateTime={
-        DATE_FORMATTER_DATETIME_ATTR.format(date).replace(/\//, "-") 
-      }
+      dateTime={DATE_FORMATTER_DATETIME_ATTR.format(date).replace(/\//, "-")}
     >
       {DATE_FORMATTER_DISPLAY.format(date)}
     </time>
