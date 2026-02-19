@@ -557,6 +557,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
       renderer.render(scene, camera);
     }
 
+    renderer.render(scene, camera);
     lastTimeRef.current = performance.now();
     frameIdRef.current = requestAnimationFrame(animate);
 
