@@ -17,14 +17,14 @@
     <link href="/src/styles.css" rel="stylesheet">
 
     <script>
-      window.addEventListener('load', function() {
+      window.addEventListener('load', () => {
         var s = document.createElement('script');
         s.src = 'https://www.googletagmanager.com/gtag/js?id=G-BSN615WT3L';
         s.async = true;
         document.head.appendChild(s);
 
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag(...args){dataLayer.push(args);}
         gtag('js', new Date());
         gtag('config', 'G-BSN615WT3L');
       });
@@ -32,7 +32,7 @@
 
     <script type="module" data-dev-only>
       if (import.meta.env.MODE === 'development') {
-        document.title = document.title + " (localhost)";
+        document.title = `${document.title} (localhost)`;
       }
     </script>
   </head>

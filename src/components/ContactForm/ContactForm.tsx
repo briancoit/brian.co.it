@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
-export function ContactForm(): React.JSX.Element {
+export const ContactForm = memo(function ContactForm(): React.JSX.Element {
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<Status>("idle");
 
@@ -93,4 +93,4 @@ export function ContactForm(): React.JSX.Element {
       )}
     </section>
   );
-}
+});

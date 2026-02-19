@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { memo, useId } from "react";
 
 export type EmploymentHistoryItemProps = {
   dateStart?: Date;
@@ -17,7 +17,7 @@ const DATE_FORMATTER_DISPLAY = new Intl.DateTimeFormat("en-GB", {
   month: "short",
 });
 
-export function EmploymentHistoryItem({
+export const EmploymentHistoryItem = memo(function EmploymentHistoryItem({
   title,
   company,
   dateEnd,
@@ -27,7 +27,7 @@ export function EmploymentHistoryItem({
   const id = useId();
 
   return (
-    <div className="timeline-item" role="listitem">
+    <div className="timeline-item">
       {dateStart || dateEnd ? (
         <p className="job-date">
           {dateStart ? <Time date={dateStart} /> : "unknown"}
@@ -44,13 +44,13 @@ export function EmploymentHistoryItem({
       </div>
     </div>
   );
-}
+});
 
 type TimeProps = {
   date: Date;
 };
 
-function Time({ date }: TimeProps): React.JSX.Element {
+const Time = memo(function Time({ date }: TimeProps): React.JSX.Element {
   return (
     <time
       dateTime={DATE_FORMATTER_DATETIME_ATTR.format(date).replace(/\//, "-")}
@@ -58,4 +58,4 @@ function Time({ date }: TimeProps): React.JSX.Element {
       {DATE_FORMATTER_DISPLAY.format(date)}
     </time>
   );
-}
+});

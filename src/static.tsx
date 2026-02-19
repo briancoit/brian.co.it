@@ -4,7 +4,6 @@ import { load } from "cheerio";
 import { minify as minifyHtml } from "html-minifier-terser";
 import ReactDOMServer from "react-dom/server";
 import type { PluginOption } from "vite";
-import { App } from "./App";
 
 export function reactPrerenderPlugin({
   minify,
@@ -44,12 +43,14 @@ export function reactPrerenderPlugin({
         }
       });
 
+      const { App } = await import("./App");
+
       // 4️⃣ Render React and inject
       const reactHtml = ReactDOMServer.renderToString(<App />);
       $("#app").append(reactHtml);
 
       // remove any dev only scripts
-      $('script[data-dev-only]').remove();
+      $("script[data-dev-only]").remove();
 
       // 5️⃣ Minify if requested
       const output = minify
