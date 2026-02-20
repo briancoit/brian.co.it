@@ -1,9 +1,6 @@
-// src/entry-server.tsx
-
 import { renderToStringAsync } from "preact-render-to-string";
-import { App } from "./App"; // Your main React component
+import { App } from "./App";
 
-export default async function render() {
-  const appHtml = await renderToStringAsync(<App />);
-  return appHtml; // The string of HTML to be injected into index.html
+export default async function render(): Promise<string> {
+ return await renderToStringAsync(<App />);
 }
