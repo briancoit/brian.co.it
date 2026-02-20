@@ -1,8 +1,7 @@
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import svgr from "vite-plugin-svgr";
-import { defineConfig } from "vite";
 import { analyzer } from "vite-bundle-analyzer";
-
 
 export default defineConfig({
   build: {
@@ -11,6 +10,10 @@ export default defineConfig({
     target: "es2020",
     cssCodeSplit: false,
     rollupOptions: {
+      input: {
+        main: "index.html",
+        ssr: "./src/entry-server.tsx",
+      },
       treeshake: {
         preset: "recommended",
         moduleSideEffects: false,
@@ -45,4 +48,3 @@ export default defineConfig({
     react(),
   ],
 });
-

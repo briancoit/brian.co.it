@@ -1436,6 +1436,7 @@ __metadata:
     globe.gl: "npm:^2.20.0"
     html-minifier-terser: "npm:^7.2.0"
     preact: "npm:^10.28.3"
+    preact-render-to-string: "npm:^6.6.5"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
     terser: "npm:^5.46.0"
@@ -3934,6 +3935,15 @@ __metadata:
     picocolors: "npm:^1.1.1"
     source-map-js: "npm:^1.2.1"
   checksum: 10c0/5127cc7c91ed7a133a1b7318012d8bfa112da9ef092dddf369ae699a1f10ebbd89b1b9f25f3228795b84585c72aabd5ced5fc11f2ba467eedf7b081a66fad024
+  languageName: node
+  linkType: hard
+
+"preact-render-to-string@npm:^6.6.5":
+  version: 6.6.5
+  resolution: "preact-render-to-string@npm:6.6.5"
+  peerDependencies:
+    preact: ">=10 || >= 11.0.0-0"
+  checksum: 10c0/1cb0bd147a88899c3cf3f458d87173bf57d6b44aded92dd9bb1ea63e82915b1dc328ec12949b8e6868fbcc711d9993669b55172b7429d21c1740faad3578399b
   languageName: node
   linkType: hard
 
