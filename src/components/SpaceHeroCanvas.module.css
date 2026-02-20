@@ -1,0 +1,28 @@
+.container {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: #000;
+  animation: canvasFadeIn 2s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+}
+
+.gradient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30%;
+  background: linear-gradient(to bottom, transparent, #000);
+  pointer-events: none;
+}
+
+@keyframes canvasFadeIn {
+  from {
+    opacity: 0;
+    filter: blur(20px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}

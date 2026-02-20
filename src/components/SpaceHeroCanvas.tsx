@@ -23,6 +23,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
+import styles from "./SpaceHeroCanvas.module.css";
 
 // Generate a soft "cloud/puff" texture for the nebulae
 function createCloudTexture(): Texture {
@@ -583,22 +584,8 @@ export function SpaceHeroCanvas(): React.JSX.Element {
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className="canvas-fade-in"
-      style={{ position: "fixed", inset: 0, zIndex: -1, background: "#000" }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: "30%",
-          background: "linear-gradient(to bottom, transparent, #000)",
-          pointerEvents: "none",
-        }}
-      />
+    <div ref={containerRef} className={styles.container}>
+      <div className={styles.gradient} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import styles from "./App.module.css";
 import { ContactForm } from "./components/ContactForm/ContactForm";
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
 
@@ -16,12 +17,6 @@ const SpaceHeroCanvas = lazy(() =>
   ),
 );
 
-// const SpaceContactCanvas = lazy(() =>
-//   import(/* @vite-preload */ "./components/SpaceContactCanvas").then(({SpaceContactCanvas}) => ({
-//     default: SpaceContactCanvas,
-//   })),
-// );
-
 export function App() {
   const [heroOpacity, setHeroOpacity] = useState(1);
 
@@ -38,26 +33,26 @@ export function App() {
 
   return (
     <>
-      <section className="hero">
-        <div className="hero-sticky-container">
+      <section className={styles.hero}>
+        <div className={styles.heroStickyContainer}>
           <Suspense fallback={null}>
             <SpaceHeroCanvas />
           </Suspense>
-          <div className="wrapper" style={{ opacity: heroOpacity }}>
+          <div className={styles.wrapper} style={{ opacity: heroOpacity }}>
             <h1>
-              brian<span className="soft">coit</span>
+              brian<span className={styles.soft}>coit</span>
               <br />
               Hi, I'm Brian.{" "}
-              <div className="soft">
+              <div className={styles.soft}>
                 Principal Software Engineer. Let's get to work.
               </div>
             </h1>
           </div>
         </div>
       </section>
-      <section className="middle-section">
-        <div className="wrapper bento-grid">
-          <div className="bento-card bento-card--bio">
+      <section className={styles.middleSection}>
+        <div className={`${styles.wrapper} ${styles.bentoGrid}`}>
+          <div className={`${styles.bentoCard} ${styles.bentoCardBio}`}>
             <p>
               I build software that works and lasts. I've led teams, shipped
               cloud platforms, and improved code, all with one goal: make things
@@ -77,11 +72,8 @@ export function App() {
           <EmploymentHistory />
         </div>
       </section>
-      <section className="contact-wrapper">
-        {/* <Suspense fallback={null}>
-          <SpaceContactCanvas />
-        </Suspense> */}
-        <div className="wrapper">
+      <section className={styles.contactWrapper}>
+        <div className={styles.wrapper}>
           <Suspense fallback={null}>
             <ContactForm />
           </Suspense>

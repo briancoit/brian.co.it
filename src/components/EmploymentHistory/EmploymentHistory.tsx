@@ -1,11 +1,12 @@
 import { memo } from "react";
 import LinkedInIcon from "../../linkedin.svg?react";
+import styles from "./EmploymentHistory.module.css";
 import { EmploymentHistoryItem } from "./EmploymentHistoryItem";
 
 export const EmploymentHistory = memo(function EmploymentHistory() {
   return (
     <div>
-      <div className="timeline">
+      <div className={styles.timeline}>
         <EmploymentHistoryItem
           title="Principal Engineer"
           company="Dare International"

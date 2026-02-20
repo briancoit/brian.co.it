@@ -1,4 +1,5 @@
 import { memo, useId } from "react";
+import styles from "./EmploymentHistoryItem.module.css";
 
 export type EmploymentHistoryItemProps = {
   dateStart?: Date;
@@ -27,18 +28,18 @@ export const EmploymentHistoryItem = memo(function EmploymentHistoryItem({
   const id = useId();
 
   return (
-    <div className="timeline-item">
+    <div className={styles.timelineItem}>
       {dateStart || dateEnd ? (
-        <p className="job-date">
+        <p className={styles.jobDate}>
           {dateStart ? <Time date={dateStart} /> : "unknown"}
           {" - "}
           {dateEnd ? <Time date={dateEnd} /> : "Present"}
         </p>
       ) : null}
 
-      <div className="job-content">
+      <div className={styles.jobContent}>
         <h3 id={id}>
-          {title}, <span className="company">{company}</span>
+          {title}, <span className={styles.company}>{company}</span>
         </h3>
         {description ? <p>{description}</p> : null}
       </div>

@@ -1,0 +1,108 @@
+.wrapper {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+.soft {
+  color: var(--text-muted);
+}
+
+/* Hero Section */
+.hero {
+  position: relative;
+  height: 200vh;
+  overflow: visible;
+  user-select: none;
+}
+
+.heroStickyContainer {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero h1 {
+  text-align: center;
+  max-width: 900px;
+  text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Bento Grid Section */
+.middleSection {
+  position: relative;
+  z-index: 10;
+  padding: var(--section-padding) 0;
+  background: transparent;
+}
+
+.bentoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Shared card base */
+.bentoCard {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  position: relative;
+  transition:
+    transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.35s ease;
+}
+
+.bentoCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Bio card — spans full width */
+.bentoCardBio {
+  grid-column: 1 / -1;
+  padding: clamp(2rem, 4vw, 3.5rem);
+}
+
+.bentoCardBio p {
+  font-size: clamp(1.05rem, 2.2vw, 1.2rem);
+  max-width: 680px;
+  line-height: 1.7;
+}
+
+.bentoCardBio p:last-child {
+  margin-bottom: 0;
+}
+
+/* Contact Section */
+.contactWrapper {
+  position: relative;
+  padding-bottom: 8rem;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .bentoGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .wrapper {
+    padding: 0 1.5rem;
+  }
+
+  .bentoCard {
+    padding: 1.5rem;
+  }
+}

@@ -1,4 +1,5 @@
 import { memo, useRef, useState } from "react";
+import styles from "./ContactForm.module.css";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -32,10 +33,12 @@ export const ContactForm = memo(function ContactForm(): React.JSX.Element {
   };
 
   return (
-    <section className="contact">
+    <section className={styles.contact}>
       <h2>Let's talk</h2>
       {status === "success" ? (
-        <p className="form-status success">Thanks! I'll be in touch.</p>
+        <p className={`${styles.formStatus} ${styles.success}`}>
+          Thanks! I'll be in touch.
+        </p>
       ) : (
         <form
           ref={formRef}
@@ -51,7 +54,7 @@ export const ContactForm = memo(function ContactForm(): React.JSX.Element {
               Don't fill this out: <input name="bot-field" />
             </label>
           </p>
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="name">Name</label>
             <input
               type="text"
@@ -61,7 +64,7 @@ export const ContactForm = memo(function ContactForm(): React.JSX.Element {
               required
             />
           </div>
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="email">Email</label>
             <input
               type="email"
@@ -71,7 +74,7 @@ export const ContactForm = memo(function ContactForm(): React.JSX.Element {
               required
             />
           </div>
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="message">Message</label>
             <textarea
               id="message"
@@ -81,11 +84,15 @@ export const ContactForm = memo(function ContactForm(): React.JSX.Element {
               required
             />
           </div>
-          <button type="submit" disabled={status === "submitting"}>
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={status === "submitting"}
+          >
             Send
           </button>
           {status === "error" && (
-            <p className="form-status error">
+            <p className={`${styles.formStatus} ${styles.error}`}>
               Something went wrong. Please try again.
             </p>
           )}

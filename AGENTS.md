@@ -22,19 +22,23 @@
 ```
 src/
 ├── App.tsx                          # Root component (hero + bento grid + contact)
+├── App.module.css                   # App layout styles (hero, bento grid, wrapper)
 ├── main.tsx                         # Client entry — hydrates SSR or mounts fresh
 ├── static.tsx                       # Build-time SSR prerender plugin
 ├── types.d.ts                       # Global type declarations
 ├── reset.css                        # CSS reset (Josh Comeau style)
-├── styles.css                       # All site styles (CSS custom properties)
+├── styles.css                       # Global base styles (custom properties, typography)
 └── components/
     ├── SpaceHeroCanvas.tsx           # Three.js hero starfield + nebula + shooting stars
     ├── SpaceContactCanvas.tsx        # Three.js contact section background (currently unused)
     ├── ContactForm/
-    │   └── ContactForm.tsx           # Netlify-powered contact form
+    │   ├── ContactForm.tsx           # Netlify-powered contact form
+    │   └── ContactForm.module.css   # Form styles
     └── EmploymentHistory/
         ├── EmploymentHistory.tsx     # Timeline of roles
-        └── EmploymentHistoryItem.tsx # Single role entry + Time sub-component
+        ├── EmploymentHistory.module.css  # Timeline container styles
+        ├── EmploymentHistoryItem.tsx # Single role entry + Time sub-component
+        └── EmploymentHistoryItem.module.css  # Timeline item styles
 ```
 
 ## React Guidelines
@@ -55,7 +59,7 @@ src/
 - **Linting**: Biome. Run `yarn lint` to check.
 - **Exports**: Named exports only (no default exports) — required by the lazy-loading pattern in `App.tsx`.
 - **TypeScript**: Strict mode. Explicit return types on exported components (`React.JSX.Element`).
-- **CSS**: **CSS Modules** (`.module.css`) preferred for component styles. Global styles and CSS custom properties live in `styles.css` (legacy, being migrated). Mobile breakpoint at `768px`. Glassmorphism aesthetic. No Tailwind, no CSS-in-JS.
+- **CSS**: **CSS Modules** (`.module.css`) for component styles, co-located alongside their component (e.g. `ContactForm.tsx` → `ContactForm.module.css`). Global styles (custom properties, base typography, shared animations) live in `styles.css`. Mobile breakpoint at `768px`. Glassmorphism aesthetic. No Tailwind, no CSS-in-JS.
 - **No new dependencies** without discussion — the bundle is aggressively optimised.
 
 ## Performance Notes
