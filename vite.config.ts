@@ -1,8 +1,10 @@
 import react from "@vitejs/plugin-react-swc";
+import svgr from "vite-plugin-svgr";
 import { defineConfig } from "vite";
 import { analyzer } from "vite-bundle-analyzer";
-import svgr from "vite-plugin-svgr";
-export default defineConfig(({ command }) => ({
+
+
+export default defineConfig({
   build: {
     minify: "terser",
     sourcemap: true,
@@ -41,17 +43,6 @@ export default defineConfig(({ command }) => ({
     analyzer({ enabled: process.env.ANALYZE === "true" }),
     svgr(),
     react(),
-    command === "build"
-      ? {
-          name: "deferred-prerender",
-          apply: "build",
-          async writeBundle(...args) {
-            const mod = "./src/static";
-            const { reactPrerenderPlugin } = await import(mod);
-            const plugin = reactPrerenderPlugin({ minify: true });
-            await plugin.writeBundle.apply(this, args);
-          },
-        }
-      : undefined,
   ],
-}));
+});
+
