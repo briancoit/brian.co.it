@@ -27,7 +27,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build --ssr && tsx src/prerender.tsx",
+    "build": "tsx src/build.ts",
     "preview": "vite preview",
     "lint": "biome check",
     "format": "biome format"
