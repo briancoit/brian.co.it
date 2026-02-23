@@ -88,6 +88,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
   const targetCameraPos = useRef({ x: 0, y: 0 });
   const targetParallaxRef = useRef(0);
   const currentParallaxRef = useRef(0);
+  const actualScrollRef = useRef(0);
   const targetRotationRef = useRef(0);
   const currentRotationRef = useRef(0);
 
@@ -95,7 +96,9 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     const handleScroll = () => {
       if (!containerRef.current) return;
       const vh = window.innerHeight;
-      targetParallaxRef.current = window.scrollY / vh;
+      const scrollY = window.scrollY;
+      targetParallaxRef.current = scrollY / vh;
+      actualScrollRef.current = scrollY;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -476,10 +479,9 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     window.addEventListener("resize", handleResize);
 
     function handleResize() {
-      if (!containerRef.current || !cameraRef.current || !rendererRef.current)
-        return;
-      const w = containerRef.current.clientWidth;
-      const h = containerRef.current.clientHeight;
+      if (!cameraRef.current || !rendererRef.current) return;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
       cameraRef.current.aspect = w / h;
       cameraRef.current.updateProjectionMatrix();
       rendererRef.current.setSize(w, h);
@@ -499,7 +501,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
       const t = now * 0.001;
 
       // Update scroll rotation early so stars and camera use the same value
-      const actualScroll = window.scrollY;
+      const actualScroll = actualScrollRef.current;
       const rotationThreshold = 800;
       if (actualScroll > rotationThreshold) {
         targetRotationRef.current = (actualScroll - rotationThreshold) * 0.0015;
