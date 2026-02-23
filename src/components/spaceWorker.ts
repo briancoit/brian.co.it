@@ -27,8 +27,7 @@ function generateStars(count: number) {
     extras[i * 4] = seed > 0.94 ? 1.0 : 0.0;
     extras[i * 4 + 1] = Math.random() < 0.2 ? 1.0 : 0.0;
     extras[i * 4 + 2] = 0.4 + Math.random() * 0.6;
-    extras[i * 4 + 3] =
-      Math.random() < 0.08 ? 0.2 + Math.random() * 0.2 : 0.0;
+    extras[i * 4 + 3] = Math.random() < 0.08 ? 0.2 + Math.random() * 0.2 : 0.0;
 
     let cR = 1.0;
     let cG = 1.0;
@@ -80,7 +79,7 @@ function generateCloudTexture(): ImageBitmap {
 }
 
 self.onmessage = () => {
-  const stars = generateStars(12000);
+  const stars = generateStars(50000);
   const cloudBitmap = generateCloudTexture();
 
   postMessage(
