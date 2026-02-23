@@ -1,5 +1,9 @@
 declare function postMessage(message: unknown, transfer: Transferable[]): void;
 
+function gaussRand() {
+  return Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random());
+}
+
 function generateStars(count: number) {
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
@@ -8,31 +12,93 @@ function generateStars(count: number) {
   const freqs = new Float32Array(count);
   const extras = new Float32Array(count * 4);
 
-  for (let i = 0; i < count; i++) {
+  // Generate random cluster centers within the star shell
+  const clusterCount = 8 + Math.floor(Math.random() * 8);
+  const clusters: { x: number; y: number; z: number; radius: number; tint: number }[] = [];
+  for (let c = 0; c < clusterCount; c++) {
     const r = 1000 + Math.random() * 1000;
     const theta = 2 * Math.PI * Math.random();
     const cosPhi = 1.0 - 2.0 * Math.random() ** 1.8;
     const sinPhi = Math.sqrt(Math.max(0, 1 - cosPhi * cosPhi));
+    clusters.push({
+      x: r * sinPhi * Math.cos(theta),
+      y: r * cosPhi,
+      z: r * sinPhi * Math.sin(theta),
+      radius: 15 + Math.random() * 30,
+      tint: Math.random(),
+    });
+  }
 
-    positions[i * 3] = r * sinPhi * Math.cos(theta);
-    positions[i * 3 + 1] = r * cosPhi;
-    positions[i * 3 + 2] = r * sinPhi * Math.sin(theta);
+  // ~15% of stars go into clusters
+  const clusterStarCount = Math.floor(count * 0.15);
+  const fieldStarCount = count - clusterStarCount;
+
+  for (let i = 0; i < count; i++) {
+    let px: number;
+    let py: number;
+    let pz: number;
+    let isClusterStar = false;
+
+    let clusterDist = 0;
+    let clusterRef: (typeof clusters)[0] | null = null;
+
+    if (i >= fieldStarCount) {
+      // Cluster star — Gaussian distribution around a random cluster center
+      clusterRef = clusters[Math.floor(Math.random() * clusters.length)];
+      const ox = gaussRand() * clusterRef.radius;
+      const oy = gaussRand() * clusterRef.radius;
+      const oz = gaussRand() * clusterRef.radius;
+      px = clusterRef.x + ox;
+      py = clusterRef.y + oy;
+      pz = clusterRef.z + oz;
+      clusterDist = Math.sqrt(ox * ox + oy * oy + oz * oz) / clusterRef.radius;
+      isClusterStar = true;
+    } else {
+      // Field star — uniform spherical shell
+      const r = 1000 + Math.random() * 1000;
+      const theta = 2 * Math.PI * Math.random();
+      const cosPhi = 1.0 - 2.0 * Math.random() ** 1.8;
+      const sinPhi = Math.sqrt(Math.max(0, 1 - cosPhi * cosPhi));
+      px = r * sinPhi * Math.cos(theta);
+      py = r * cosPhi;
+      pz = r * sinPhi * Math.sin(theta);
+    }
+
+    positions[i * 3] = px;
+    positions[i * 3 + 1] = py;
+    positions[i * 3 + 2] = pz;
 
     const seed = Math.random();
     const colorSeed = Math.random();
-    sizes[i] =
-      seed < 0.8 ? 0.8 + Math.random() * 1.2 : 2.0 + Math.random() * 1.5;
+    const coreFade = Math.max(0, 1 - clusterDist * 0.7);
+    sizes[i] = isClusterStar
+      ? (0.4 + Math.random() * 0.5) * (0.6 + 0.4 * coreFade)
+      : seed < 0.8
+        ? 0.8 + Math.random() * 1.2
+        : 2.0 + Math.random() * 1.5;
     phases[i] = Math.random() * Math.PI * 2;
     freqs[i] = 0.5 + Math.random() * 1.0;
     extras[i * 4] = seed > 0.94 ? 1.0 : 0.0;
     extras[i * 4 + 1] = Math.random() < 0.2 ? 1.0 : 0.0;
-    extras[i * 4 + 2] = 0.4 + Math.random() * 0.6;
+    extras[i * 4 + 2] = isClusterStar
+      ? (0.2 + Math.random() * 0.25) * (0.5 + 0.5 * coreFade)
+      : 0.4 + Math.random() * 0.6;
     extras[i * 4 + 3] = Math.random() < 0.08 ? 0.2 + Math.random() * 0.2 : 0.0;
 
     let cR = 1.0;
     let cG = 1.0;
     let cB = 1.0;
-    if (colorSeed < 0.04) {
+    if (isClusterStar && clusterRef) {
+      if (clusterRef.tint < 0.33) {
+        cR = 0.75 + Math.random() * 0.1;
+        cG = 0.85 + Math.random() * 0.1;
+        cB = 1.0;
+      } else if (clusterRef.tint < 0.66) {
+        cR = 1.0;
+        cG = 0.92 + Math.random() * 0.08;
+        cB = 0.75 + Math.random() * 0.1;
+      }
+    } else if (colorSeed < 0.04) {
       cR = 0.7;
       cG = 0.8;
       cB = 1.0;
