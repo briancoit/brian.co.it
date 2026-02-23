@@ -777,6 +777,8 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     const isMobileViewport =
       typeof window !== "undefined" && window.innerWidth < 768;
 
+    let mobileAutoTimeout: NodeJS.Timeout | null = null;
+
     if (!isMobileViewport) {
       idleId = setTimeout(startWebGL, 100) as unknown as NodeJS.Timeout;
     } else {
@@ -785,6 +787,9 @@ export function SpaceHeroCanvas(): React.JSX.Element {
         window.addEventListener(e, handleInteraction, { once: true, passive: true }),
       );
 
+      // Auto-initialize after 5 seconds on mobile if no interaction occurred
+      mobileAutoTimeout = setTimeout(startWebGL, 5000);
+
       interactionCleanup = () => {
         events.forEach((e) => window.removeEventListener(e, handleInteraction));
       };
@@ -792,6 +797,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 
     return () => {
       if (interactionCleanup) interactionCleanup();
+      if (mobileAutoTimeout) clearTimeout(mobileAutoTimeout);
 
       if (idleId !== null) {
         if (typeof window.cancelIdleCallback !== "undefined") {
