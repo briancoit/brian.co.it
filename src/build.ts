@@ -45,18 +45,20 @@ async function test(input: string) {
   const $ = load(html);
 
   // 2️⃣ Inline CSS to eliminate render-blocking requests
-  // $('link[rel="stylesheet"]').each((_, el) => {
-  //   const href = $(el).attr("href");
-  //   if (!href) return;
-  //   const cssPath = path.join("dist", href);
-  //   if (fs.existsSync(cssPath)) {
-  //     const css = fs.readFileSync(cssPath, "utf-8");
-  //     $(el).replaceWith(`<style>${css}</style>`);
-  //     fs.unlinkSync(cssPath);
-  //   }
-  // });
+  $('link[rel="stylesheet"]').each((_, el) => {
+    const href = $(el).attr("href");
+    if (!href) return;
+    const cssPath = path.join("dist", href);
+    if (fs.existsSync(cssPath)) {
+      const css = fs.readFileSync(cssPath, "utf-8");
+      $(el).replaceWith(`<style>${css}</style>`);
+      fs.unlinkSync(cssPath);
+    }
+  });
 
   $("#app").append(input);
+
+  $("script").attr("defer", "");
 
   // remove any dev only scripts
   $("script[data-dev-only]").remove();
