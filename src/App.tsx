@@ -34,11 +34,11 @@ export function App() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <LazySpaceHeroCanvas />
+      </Suspense>
       <section className={styles.hero}>
         <div className={styles.heroStickyContainer}>
-          <Suspense fallback={null}>
-            <LazySpaceHeroCanvas />
-          </Suspense>
           <div ref={heroWrapperRef} className={styles.wrapper}>
             <h1>
               brian<span className={styles.soft}>coit</span>
