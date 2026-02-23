@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import styles from "./App.module.css";
 import { ContactForm } from "./components/ContactForm/ContactForm";
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
+import { SpaceHeroCanvas } from "./components/SpaceHeroCanvas";
 
 // const ContactForm = lazy(() =>
 //   import(/* @vite-preload */ "./components/ContactForm/ContactForm").then(({ContactForm}) => ({
@@ -9,13 +10,6 @@ import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHist
 //   })),
 // );
 
-const SpaceHeroCanvas = lazy(() =>
-  import(/* @vite-preload */ "./components/SpaceHeroCanvas").then(
-    ({ SpaceHeroCanvas }) => ({
-      default: SpaceHeroCanvas,
-    }),
-  ),
-);
 
 export function App() {
   const [heroOpacity, setHeroOpacity] = useState(1);
