@@ -58,8 +58,6 @@ async function test(input: string) {
 
   $("#app").append(input);
 
-  $("script").attr("defer", "");
-
   // remove any dev only scripts
   $("script[data-dev-only]").remove();
 
