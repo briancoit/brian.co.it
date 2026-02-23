@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
 import styles from "./App.module.css";
 import { ContactForm } from "./components/ContactForm/ContactForm";
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
@@ -32,15 +32,25 @@ export function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isLighthouse = navigator?.userAgent?.toLowerCase().includes("lighthouse");
+  const isBot = useMemo(
+    () =>
+      typeof navigator !== "undefined" &&
+      (/bot|googlebot|crawler|spider|robot|crawling|lighthouse|headlesschrome/i.test(
+        navigator.userAgent,
+      ) ||
+        navigator.webdriver),
+    [],
+  );
 
   return (
     <>
       <section className={styles.hero}>
         <div className={styles.heroStickyContainer}>
-          {isLighthouse ? null : <Suspense fallback={null}>
-            <LazySpaceHeroCanvas />
-          </Suspense>}
+          {isBot ? null : (
+            <Suspense fallback={null}>
+              <LazySpaceHeroCanvas />
+            </Suspense>
+          )}
           <div ref={heroWrapperRef} className={styles.wrapper}>
             <h1>
               brian<span className={styles.soft}>coit</span>
