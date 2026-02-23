@@ -2,7 +2,6 @@ import {
   Camera,
   Geometry,
   Mesh,
-  type OGLRenderingContext,
   Program,
   Renderer,
   Texture,
@@ -12,46 +11,6 @@ import {
 import type React from "react";
 import { useEffect, useRef } from "react";
 import styles from "./SpaceHeroCanvas.module.css";
-
-// Generate a soft "cloud/puff" texture for the nebulae
-function createCloudTexture(gl: OGLRenderingContext): Texture {
-  const textWidth = 512;
-  const textHeight = 512;
-  const canvas = document.createElement("canvas");
-  canvas.width = textWidth;
-  canvas.height = textHeight;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return new Texture(gl);
-
-  const cx = textWidth / 2;
-  const cy = textHeight / 2;
-  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, cx);
-  grad.addColorStop(0.0, "rgba(255, 255, 255, 1.0)");
-  grad.addColorStop(0.2, "rgba(255, 255, 255, 0.8)");
-  grad.addColorStop(0.5, "rgba(255, 255, 255, 0.2)");
-  grad.addColorStop(0.8, "rgba(255, 255, 255, 0.05)");
-  grad.addColorStop(1.0, "rgba(0, 0, 0, 0)");
-
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, textWidth, textHeight);
-
-  const imageData = ctx.getImageData(0, 0, textWidth, textHeight);
-  const data = imageData.data;
-  for (let i = 0; i < data.length; i += 4) {
-    const noise = (Math.random() - 0.5) * 30;
-    data[i] = Math.min(255, Math.max(0, data[i] + noise));
-    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
-    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
-  }
-  ctx.putImageData(imageData, 0, 0);
-
-  return new Texture(gl, {
-    image: canvas,
-    generateMipmaps: false,
-    minFilter: gl.LINEAR,
-    magFilter: gl.LINEAR,
-  });
-}
 
 export function SpaceHeroCanvas(): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -87,176 +46,149 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     if (!containerRef.current) return;
 
     let cleanupFunc: (() => void) | null = null;
-    let idleId: number | ReturnType<typeof setTimeout> | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const initWebGL = () => {
       if (!containerRef.current) return;
 
-      // Variables shared between init steps and animation loop
-      let renderer: Renderer;
-      let gl: OGLRenderingContext;
-      let camera: Camera;
-      let scene: Transform;
-      let nebulaMat: Program;
-      let instancedNebula: Mesh;
+      // Kick off heavy computation in a Web Worker immediately
+      const worker = new Worker(new URL("./spaceWorker.ts", import.meta.url), {
+        type: "module",
+      });
+      worker.postMessage("init");
+
+      // --- Renderer setup (lightweight, main thread) ---
+      const renderer = new Renderer({
+        alpha: false,
+        dpr: Math.min(window.devicePixelRatio, 1.5),
+        powerPreference: "high-performance",
+      });
+      const gl = renderer.gl;
+      gl.clearColor(0, 0, 0, 1);
+      gl.canvas.classList.add(styles.canvas);
+      containerRef.current.appendChild(gl.canvas);
+
+      const camera = new Camera(gl, { fov: 60, near: 0.1, far: 5000 });
+      camera.position.z = 500;
+      const scene = new Transform();
+
+      const handleResize = () => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        renderer.setSize(w, h);
+        camera.perspective({ aspect: w / h });
+      };
+      window.addEventListener("resize", handleResize);
+      handleResize();
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          const wasVisible = isVisibleRef.current;
+          isVisibleRef.current = entry.isIntersecting;
+          if (entry.isIntersecting && !wasVisible && frameIdRef.current === 0) {
+            lastTimeRef.current = performance.now();
+            frameIdRef.current = requestAnimationFrame(animate);
+          }
+        },
+        { threshold: 0 },
+      );
+      if (containerRef.current) observer.observe(containerRef.current);
+
+      // Scene objects — null until worker data arrives
+      let nebulaMat: Program | null = null;
+      let instancedNebula: Mesh | null = null;
       let starMat: Program | null = null;
       let starSystem: Mesh | null = null;
-      let buildIdleId: NodeJS.Timeout | number | null = null;
-      let observer: IntersectionObserver;
 
       type ShootingStar = Mesh & {
         userData: { velocity: Vec3; life: number; active: boolean };
       };
       const shootingStarPool: ShootingStar[] = [];
 
-      const starCount = 12000;
-      const starPositions = new Float32Array(starCount * 3);
-      const starColors = new Float32Array(starCount * 3);
-      const starSizes = new Float32Array(starCount);
-      const starPhases = new Float32Array(starCount);
-      const starFreqs = new Float32Array(starCount);
-      const starExtras = new Float32Array(starCount * 4); // x: glow, y: twinkle, z: alpha, w: scintillation
-      let starIdx = 0;
-      const CHUNK_SIZE = 1500;
+      // --- Build scene when worker delivers computed data ---
+      worker.onmessage = (e: MessageEvent) => {
+        const { positions, colors, sizes, phases, freqs, extras, cloudBitmap } =
+          e.data;
+        worker.terminate();
 
-      const steps: (() => void)[] = [
-        // 1. Renderer Setup
-        () => {
-          renderer = new Renderer({
-            alpha: false,
-            dpr: Math.min(window.devicePixelRatio, 1.5),
-            powerPreference: "high-performance",
-          });
-          gl = renderer.gl;
-          gl.clearColor(0, 0, 0, 1);
-          gl.canvas.classList.add(styles.canvas);
-          containerRef.current?.appendChild(gl.canvas);
+        // -- Nebula --
+        const cloudTexture = new Texture(gl, {
+          image: cloudBitmap,
+          generateMipmaps: false,
+          minFilter: gl.LINEAR,
+          magFilter: gl.LINEAR,
+        });
 
-          camera = new Camera(gl, { fov: 60, near: 0.1, far: 5000 });
-          camera.position.z = 500;
-          scene = new Transform();
+        const nebulaColors = [
+          [123 / 255, 47 / 255, 202 / 255],
+          [6 / 255, 95 / 255, 70 / 255],
+          [83 / 255, 72 / 255, 184 / 255],
+          [22 / 255, 78 / 255, 99 / 255],
+        ];
+        const cloudCount = 50;
 
-          const handleResize = () => {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            renderer.setSize(w, h);
-            camera.perspective({ aspect: w / h });
-          };
-          window.addEventListener("resize", handleResize);
-          handleResize();
+        const vertices = new Float32Array([
+          -0.5, -0.5, 0, 0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0,
+        ]);
+        const uvs = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
+        const index = new Uint16Array([0, 1, 2, 2, 1, 3]);
 
-          observer = new IntersectionObserver(
-            ([entry]) => {
-              const wasVisible = isVisibleRef.current;
-              isVisibleRef.current = entry.isIntersecting;
-              if (
-                entry.isIntersecting &&
-                !wasVisible &&
-                frameIdRef.current === 0
-              ) {
-                lastTimeRef.current = performance.now();
-                frameIdRef.current = requestAnimationFrame(animate);
-              }
-            },
-            { threshold: 0 },
+        const aOffset = new Float32Array(cloudCount * 3);
+        const aScale = new Float32Array(cloudCount);
+        const aRotY = new Float32Array(cloudCount);
+        const aRotZ = new Float32Array(cloudCount);
+        const aColor = new Float32Array(cloudCount * 3);
+        const aData = new Float32Array(cloudCount * 4);
+
+        for (let i = 0; i < cloudCount; i++) {
+          const color =
+            nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
+          const opacity = 0.045 + Math.random() * 0.055;
+          const scale = 500 + Math.random() * 700;
+
+          const angleStep = (Math.PI * 2) / cloudCount;
+          const angle = i * angleStep + (Math.random() - 0.5) * angleStep * 0.8;
+          const dist = 400 + Math.random() * 600;
+
+          aOffset.set(
+            [
+              Math.cos(angle) * dist,
+              (Math.random() - 0.5) * 1000,
+              Math.sin(angle) * dist,
+            ],
+            i * 3,
           );
-          if (containerRef.current) observer.observe(containerRef.current);
 
-          // Wrapped cleanup
-          const originalCleanup = cleanupFunc;
-          cleanupFunc = () => {
-            if (originalCleanup) originalCleanup();
-            observer.disconnect();
-            window.removeEventListener("resize", handleResize);
-            if (buildIdleId !== null) {
-              if (typeof window.cancelIdleCallback !== "undefined") {
-                window.cancelIdleCallback(buildIdleId as number);
-              } else {
-                clearTimeout(buildIdleId as NodeJS.Timeout);
-              }
-            }
-            if (gl.canvas.parentNode) {
-              gl.canvas.parentNode.removeChild(gl.canvas);
-            }
-            const loseContext = gl.getExtension("WEBGL_lose_context");
-            if (loseContext) loseContext.loseContext();
-          };
-        },
+          aScale[i] = scale;
+          aRotY[i] = angle + Math.PI;
+          aRotZ[i] = Math.random() * Math.PI * 2;
 
-        // 2. Nebula Setup
-        () => {
-          const cloudTexture = createCloudTexture(gl);
-          const nebulaColors = [
-            [123 / 255, 47 / 255, 202 / 255], // #7b2fca
-            [6 / 255, 95 / 255, 70 / 255], // #065f46
-            [83 / 255, 72 / 255, 184 / 255], // #5348b8
-            [22 / 255, 78 / 255, 99 / 255], // #164e63
-          ];
-          const cloudCount = 50;
+          aColor.set(color, i * 3);
+          aData.set(
+            [
+              0.05 + Math.random() * 0.05,
+              Math.random() * Math.PI * 2,
+              opacity,
+              0,
+            ],
+            i * 4,
+          );
+        }
 
-          const vertices = new Float32Array([
-            -0.5, -0.5, 0, 0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0,
-          ]);
-          const uvs = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
-          const index = new Uint16Array([0, 1, 2, 2, 1, 3]);
+        const nebulaGeo = new Geometry(gl, {
+          position: { size: 3, data: vertices },
+          uv: { size: 2, data: uvs },
+          index: { data: index },
+          aOffset: { instanced: 1, size: 3, data: aOffset },
+          aScale: { instanced: 1, size: 1, data: aScale },
+          aRotY: { instanced: 1, size: 1, data: aRotY },
+          aRotZ: { instanced: 1, size: 1, data: aRotZ },
+          aColor: { instanced: 1, size: 3, data: aColor },
+          aData: { instanced: 1, size: 4, data: aData },
+        });
 
-          const aOffset = new Float32Array(cloudCount * 3);
-          const aScale = new Float32Array(cloudCount);
-          const aRotY = new Float32Array(cloudCount);
-          const aRotZ = new Float32Array(cloudCount);
-          const aColor = new Float32Array(cloudCount * 3);
-          const aData = new Float32Array(cloudCount * 4); // x: speed, y: phase, z: opacity, w: unused
-
-          for (let i = 0; i < cloudCount; i++) {
-            const color =
-              nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
-            const opacity = 0.045 + Math.random() * 0.055;
-            const scale = 500 + Math.random() * 700;
-
-            const angleStep = (Math.PI * 2) / cloudCount;
-            const angle =
-              i * angleStep + (Math.random() - 0.5) * angleStep * 0.8;
-            const dist = 400 + Math.random() * 600;
-
-            aOffset.set(
-              [
-                Math.cos(angle) * dist,
-                (Math.random() - 0.5) * 1000,
-                Math.sin(angle) * dist,
-              ],
-              i * 3,
-            );
-
-            aScale[i] = scale;
-            aRotY[i] = angle + Math.PI;
-            aRotZ[i] = Math.random() * Math.PI * 2;
-
-            aColor.set(color, i * 3);
-            aData.set(
-              [
-                0.05 + Math.random() * 0.05,
-                Math.random() * Math.PI * 2,
-                opacity,
-                0,
-              ],
-              i * 4,
-            );
-          }
-
-          const nebulaGeo = new Geometry(gl, {
-            position: { size: 3, data: vertices },
-            uv: { size: 2, data: uvs },
-            index: { data: index },
-            aOffset: { instanced: 1, size: 3, data: aOffset },
-            aScale: { instanced: 1, size: 1, data: aScale },
-            aRotY: { instanced: 1, size: 1, data: aRotY },
-            aRotZ: { instanced: 1, size: 1, data: aRotZ },
-            aColor: { instanced: 1, size: 3, data: aColor },
-            aData: { instanced: 1, size: 4, data: aData },
-          });
-
-          nebulaMat = new Program(gl, {
-            vertex: `
+        nebulaMat = new Program(gl, {
+          vertex: `
             attribute vec3 position;
             attribute vec2 uv;
             attribute vec3 aOffset;
@@ -314,7 +246,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
               gl_Position = projectionMatrix * mvPosition;
             }
           `,
-            fragment: `
+          fragment: `
             precision highp float;
             uniform sampler2D uMap;
             uniform float uTime;
@@ -361,85 +293,34 @@ export function SpaceHeroCanvas(): React.JSX.Element {
               gl_FragColor = vec4(shifted, alpha * fogFactor);
             }
           `,
-            uniforms: {
-              uMap: { value: cloudTexture },
-              uTime: { value: 0 },
-            },
-            transparent: true,
-            depthWrite: false,
-          });
-          nebulaMat.blendFunc = { src: gl.SRC_ALPHA, dst: gl.ONE };
+          uniforms: {
+            uMap: { value: cloudTexture },
+            uTime: { value: 0 },
+          },
+          transparent: true,
+          depthWrite: false,
+        });
+        nebulaMat.blendFunc = { src: gl.SRC_ALPHA, dst: gl.ONE };
 
-          instancedNebula = new Mesh(gl, {
-            geometry: nebulaGeo,
-            program: nebulaMat,
-            frustumCulled: false,
-          });
-          instancedNebula.setParent(scene);
-        },
+        instancedNebula = new Mesh(gl, {
+          geometry: nebulaGeo,
+          program: nebulaMat,
+          frustumCulled: false,
+        });
+        instancedNebula.setParent(scene);
 
-        // 3. Starfield Generation (Iterative)
-        function buildStars() {
-          const end = Math.min(starIdx + CHUNK_SIZE, starCount);
-          for (; starIdx < end; starIdx++) {
-            const i = starIdx;
-            const r = 1000 + Math.random() * 1000;
-            const theta = 2 * Math.PI * Math.random();
-            const cosPhi = 1.0 - 2.0 * Math.random() ** 1.8;
-            const sinPhi = Math.sqrt(Math.max(0, 1 - cosPhi * cosPhi));
+        // -- Starfield (using pre-computed arrays from worker) --
+        const starGeo = new Geometry(gl, {
+          position: { size: 3, data: positions },
+          color: { size: 3, data: colors },
+          size: { size: 1, data: sizes },
+          phase: { size: 1, data: phases },
+          frequency: { size: 1, data: freqs },
+          extraData: { size: 4, data: extras },
+        });
 
-            starPositions[i * 3] = r * sinPhi * Math.cos(theta);
-            starPositions[i * 3 + 1] = r * cosPhi;
-            starPositions[i * 3 + 2] = r * sinPhi * Math.sin(theta);
-
-            const seed = Math.random();
-            const colorSeed = Math.random();
-            starSizes[i] =
-              seed < 0.8 ? 0.8 + Math.random() * 1.2 : 2.0 + Math.random() * 1.5;
-            starPhases[i] = Math.random() * Math.PI * 2;
-            starFreqs[i] = 0.5 + Math.random() * 1.0;
-            starExtras[i * 4] = seed > 0.94 ? 1.0 : 0.0;
-            starExtras[i * 4 + 1] = Math.random() < 0.2 ? 1.0 : 0.0;
-            starExtras[i * 4 + 2] = 0.4 + Math.random() * 0.6;
-            starExtras[i * 4 + 3] =
-              Math.random() < 0.08 ? 0.2 + Math.random() * 0.2 : 0.0;
-
-            let cR = 1.0,
-              cG = 1.0,
-              cB = 1.0;
-            if (colorSeed < 0.04) {
-              cR = 0.7;
-              cG = 0.8;
-              cB = 1.0;
-            } else if (colorSeed < 0.08) {
-              cR = 1.0;
-              cG = 0.9;
-              cB = 0.7;
-            }
-            starColors[i * 3] = cR;
-            starColors[i * 3 + 1] = cG;
-            starColors[i * 3 + 2] = cB;
-          }
-
-          if (starIdx < starCount) {
-            // Re-queue this same function for next idle period
-            currentStep--;
-          }
-        },
-
-        // 4. Starfield Setup
-        () => {
-          const starGeo = new Geometry(gl, {
-            position: { size: 3, data: starPositions },
-            color: { size: 3, data: starColors },
-            size: { size: 1, data: starSizes },
-            phase: { size: 1, data: starPhases },
-            frequency: { size: 1, data: starFreqs },
-            extraData: { size: 4, data: starExtras },
-          });
-
-          starMat = new Program(gl, {
-            vertex: `
+        starMat = new Program(gl, {
+          vertex: `
             attribute vec3 position;
             attribute float size;
             attribute float phase;
@@ -481,7 +362,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
               vColor = mix(color, scinColor, scin);
             }
           `,
-            fragment: `
+          fragment: `
             precision highp float;
             varying float vAlpha;
             varying float vGlow;
@@ -503,36 +384,34 @@ export function SpaceHeroCanvas(): React.JSX.Element {
               gl_FragColor = vec4(vColor, outAlpha * fogFactor);
             }
           `,
-            uniforms: {
-              uTime: { value: 0 },
-              uPixelRatio: { value: renderer.dpr },
-            },
-            transparent: true,
-            depthWrite: false,
+          uniforms: {
+            uTime: { value: 0 },
+            uPixelRatio: { value: renderer.dpr },
+          },
+          transparent: true,
+          depthWrite: false,
+        });
+        starMat.blendFunc = { src: gl.SRC_ALPHA, dst: gl.ONE };
+
+        starSystem = new Mesh(gl, {
+          mode: gl.POINTS,
+          geometry: starGeo,
+          program: starMat,
+        });
+        starSystem.setParent(scene);
+
+        // -- Shooting Stars --
+        const poolSize = 20;
+        const shootingStarsRoot = new Transform();
+        shootingStarsRoot.setParent(scene);
+
+        for (let i = 0; i < poolSize; i++) {
+          const lineGeo = new Geometry(gl, {
+            position: { size: 3, data: new Float32Array(6) },
+            color: { size: 3, data: new Float32Array(6) },
           });
-          starMat.blendFunc = { src: gl.SRC_ALPHA, dst: gl.ONE };
-
-          starSystem = new Mesh(gl, {
-            mode: gl.POINTS,
-            geometry: starGeo,
-            program: starMat,
-          });
-          starSystem.setParent(scene);
-        },
-
-        // 5. Shooting Stars Setup
-        () => {
-          const poolSize = 20;
-          const shootingStarsRoot = new Transform();
-          shootingStarsRoot.setParent(scene);
-
-          for (let i = 0; i < poolSize; i++) {
-            const lineGeo = new Geometry(gl, {
-              position: { size: 3, data: new Float32Array(6) },
-              color: { size: 3, data: new Float32Array(6) },
-            });
-            const lineMat = new Program(gl, {
-              vertex: `
+          const lineMat = new Program(gl, {
+            vertex: `
               attribute vec3 position;
               attribute vec3 color;
               uniform mat4 modelViewMatrix;
@@ -543,7 +422,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
               }
             `,
-              fragment: `
+            fragment: `
               precision highp float;
               varying vec3 vColor;
               uniform float uOpacity;
@@ -551,44 +430,27 @@ export function SpaceHeroCanvas(): React.JSX.Element {
                 gl_FragColor = vec4(vColor, uOpacity);
               }
             `,
-              uniforms: { uOpacity: { value: 0 } },
-              transparent: true,
-              depthWrite: false,
-            });
-            lineMat.blendFunc = { src: gl.SRC_ALPHA, dst: gl.ONE };
+            uniforms: { uOpacity: { value: 0 } },
+            transparent: true,
+            depthWrite: false,
+          });
+          lineMat.blendFunc = { src: gl.SRC_ALPHA, dst: gl.ONE };
 
-            const line = new Mesh(gl, {
-              mode: gl.LINES,
-              geometry: lineGeo,
-              program: lineMat,
-            }) as ShootingStar;
-            line.userData = { velocity: new Vec3(), life: 0, active: false };
-            line.setParent(shootingStarsRoot);
-            line.position.set(0, -9999, 0);
-            shootingStarPool.push(line);
-          }
-        },
-
-        // 6. Finalize & Start Animation
-        () => {
-          gl.canvas.classList.add(styles.canvasReady);
-          animate(performance.now());
-        },
-      ];
-
-      let currentStep = 0;
-      const runNextStep = () => {
-        if (!containerRef.current) return;
-        if (currentStep < steps.length) {
-          steps[currentStep++]();
-          if (typeof window.requestIdleCallback !== "undefined") {
-            buildIdleId = window.requestIdleCallback(runNextStep);
-          } else {
-            buildIdleId = setTimeout(runNextStep, 1);
-          }
+          const line = new Mesh(gl, {
+            mode: gl.LINES,
+            geometry: lineGeo,
+            program: lineMat,
+          }) as ShootingStar;
+          line.userData = { velocity: new Vec3(), life: 0, active: false };
+          line.setParent(shootingStarsRoot);
+          line.position.set(0, -9999, 0);
+          shootingStarPool.push(line);
         }
+
+        // -- Finalize --
+        gl.canvas.classList.add(styles.canvasReady);
+        animate(performance.now());
       };
-      runNextStep();
 
       // Input handlers
       const handleMouseMove = (e: MouseEvent) => {
@@ -660,18 +522,35 @@ export function SpaceHeroCanvas(): React.JSX.Element {
           const star = shootingStarPool.find((s) => !s.userData.active);
           if (star) {
             const trailLength = 10 + Math.random() * 20;
-            const posData = star.geometry.attributes.position.data as Float32Array;
-            posData[0] = -trailLength; posData[1] = 0; posData[2] = 0;
-            posData[3] = 0; posData[4] = 0; posData[5] = 0;
+            const posData = star.geometry.attributes.position
+              .data as Float32Array;
+            posData[0] = -trailLength;
+            posData[1] = 0;
+            posData[2] = 0;
+            posData[3] = 0;
+            posData[4] = 0;
+            posData[5] = 0;
             star.geometry.attributes.position.needsUpdate = true;
             const colData = star.geometry.attributes.color.data as Float32Array;
-            colData[0] = 0; colData[1] = 0; colData[2] = 0;
-            colData[3] = 1; colData[4] = 1; colData[5] = 1;
+            colData[0] = 0;
+            colData[1] = 0;
+            colData[2] = 0;
+            colData[3] = 1;
+            colData[4] = 1;
+            colData[5] = 1;
             star.geometry.attributes.color.needsUpdate = true;
             const speed = Math.random() * 10 + 20;
             const angle = -Math.PI / 6 - Math.random() * (Math.PI / 4);
-            star.userData.velocity.set(Math.cos(angle) * speed, Math.sin(angle) * speed, 0);
-            star.position.set((Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 1200, (Math.random() - 0.5) * 400 - 100);
+            star.userData.velocity.set(
+              Math.cos(angle) * speed,
+              Math.sin(angle) * speed,
+              0,
+            );
+            star.position.set(
+              (Math.random() - 0.5) * 2000,
+              (Math.random() - 0.5) * 1200,
+              (Math.random() - 0.5) * 400 - 100,
+            );
             star.rotation.z = angle;
             star.userData.life = 1.0;
             star.userData.active = true;
@@ -686,7 +565,10 @@ export function SpaceHeroCanvas(): React.JSX.Element {
           star.position.x += star.userData.velocity.x * speedFactor;
           star.position.y += star.userData.velocity.y * speedFactor;
           star.userData.life -= lifeDecay;
-          star.program.uniforms.uOpacity.value = Math.max(0, star.userData.life);
+          star.program.uniforms.uOpacity.value = Math.max(
+            0,
+            star.userData.life,
+          );
           if (star.userData.life <= 0) {
             star.userData.active = false;
             star.position.set(0, -9999, 0);
@@ -694,40 +576,39 @@ export function SpaceHeroCanvas(): React.JSX.Element {
         }
 
         const mouseFactor = 1 - 0.0001 ** deltaTime;
-        targetCameraPos.current.x += (mouseRef.current.x * 50 - targetCameraPos.current.x) * mouseFactor;
-        targetCameraPos.current.y += (mouseRef.current.y * 50 - targetCameraPos.current.y) * mouseFactor;
+        targetCameraPos.current.x +=
+          (mouseRef.current.x * 50 - targetCameraPos.current.x) * mouseFactor;
+        targetCameraPos.current.y +=
+          (mouseRef.current.y * 50 - targetCameraPos.current.y) * mouseFactor;
         const tOrbit = t * 0.02;
         const radius = 500;
         const orbitalX = Math.sin(currentRotationRef.current + tOrbit) * radius;
         const orbitalZ = Math.cos(currentRotationRef.current + tOrbit) * radius;
-        camera.position.set(orbitalX + targetCameraPos.current.x, scrollY + targetCameraPos.current.y, orbitalZ);
+        camera.position.set(
+          orbitalX + targetCameraPos.current.x,
+          scrollY + targetCameraPos.current.y,
+          orbitalZ,
+        );
         camera.lookAt([0, scrollY, 0]);
         renderer.render({ scene, camera });
       }
 
       cleanupFunc = () => {
-        if (buildIdleId !== null) {
-          if (typeof window.cancelIdleCallback !== "undefined") {
-            window.cancelIdleCallback(buildIdleId as number);
-          } else {
-            clearTimeout(buildIdleId as NodeJS.Timeout);
-          }
-        }
+        worker.terminate();
+        observer.disconnect();
+        window.removeEventListener("resize", handleResize);
         window.removeEventListener("mousemove", handleMouseMove);
         if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
+        if (gl.canvas.parentNode) gl.canvas.parentNode.removeChild(gl.canvas);
+        const loseContext = gl.getExtension("WEBGL_lose_context");
+        if (loseContext) loseContext.loseContext();
       };
     };
 
-    const startWebGL = () => {
-      initWebGL();
-    };
-
-    idleId = setTimeout(startWebGL, 100) as unknown as NodeJS.Timeout;
+    timeoutId = setTimeout(initWebGL, 100);
 
     return () => {
-      if (idleId !== null) {
-        clearTimeout(idleId as NodeJS.Timeout);
-      }
+      if (timeoutId !== null) clearTimeout(timeoutId);
       if (cleanupFunc) cleanupFunc();
     };
   }, []);
