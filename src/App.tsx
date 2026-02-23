@@ -1,8 +1,15 @@
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import styles from "./App.module.css";
 import { ContactForm } from "./components/ContactForm/ContactForm";
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
-import { SpaceHeroCanvas } from "./components/SpaceHeroCanvas";
+
+// Load heavy WebGL component lazily to ensure it doesn't block the main thread
+// during initial page load, which hurts Lighthouse and FCP metrics.
+const LazySpaceHeroCanvas = lazy(() =>
+  import("./components/SpaceHeroCanvas").then(({ SpaceHeroCanvas }) => ({
+    default: SpaceHeroCanvas,
+  })),
+);
 
 // const ContactForm = lazy(() =>
 //   import(/* @vite-preload */ "./components/ContactForm/ContactForm").then(({ContactForm}) => ({
@@ -32,7 +39,7 @@ export function App() {
       <section className={styles.hero}>
         <div className={styles.heroStickyContainer}>
           {isLighthouse ? null : <Suspense fallback={null}>
-            <SpaceHeroCanvas />
+            <LazySpaceHeroCanvas />
           </Suspense>}
           <div ref={heroWrapperRef} className={styles.wrapper}>
             <h1>
