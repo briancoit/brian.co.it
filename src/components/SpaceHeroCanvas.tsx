@@ -20,7 +20,6 @@ export function SpaceHeroCanvas(): React.JSX.Element {
   const lastTimeRef = useRef<number>(0);
 
   const mouseRef = useRef({ x: 0, y: 0 });
-  const mouseInitializedRef = useRef(false);
   const targetCameraPos = useRef(new Vec3(0, 0, 0));
   const targetParallaxRef = useRef(0);
   const currentParallaxRef = useRef(0);
@@ -454,13 +453,10 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 
       // Input handlers
       const handleMouseMove = (e: MouseEvent) => {
-        const x = (e.clientX / window.innerWidth) * 2 - 1;
-        const y = -(e.clientY / window.innerHeight) * 2 + 1;
-        if (!mouseInitializedRef.current) {
-          mouseInitializedRef.current = true;
-          targetCameraPos.current.set(x * 50, y * 50, 0);
-        }
-        mouseRef.current = { x, y };
+        mouseRef.current = {
+          x: (e.clientX / window.innerWidth) * 2 - 1,
+          y: -(e.clientY / window.innerHeight) * 2 + 1,
+        };
       };
       window.addEventListener("mousemove", handleMouseMove);
 
