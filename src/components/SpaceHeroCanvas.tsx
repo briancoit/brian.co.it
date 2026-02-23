@@ -550,14 +550,14 @@ export function SpaceHeroCanvas(): React.JSX.Element {
 
         const rawDelta = now - lastTimeRef.current;
         lastTimeRef.current = now;
-        
+
         // Progressive enhancement / Lighthouse bail-out check:
         // If the device (or 4x CPU throttle) is constantly struggling, kill the animation loop
         if (rawDelta > 50) {
           slowFrameCount++;
           if (slowFrameCount > 10) {
-             // Device is too weak or we are profiling. Silence the canvas.
-             return;
+            // Device is too weak or we are profiling. Silence the canvas.
+            return;
           }
         } else {
           slowFrameCount = Math.max(0, slowFrameCount - 1);
