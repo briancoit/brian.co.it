@@ -86,15 +86,6 @@ export function SpaceHeroCanvas(): React.JSX.Element {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Mobile & Lighthouse Mobile Bypass
-    // Rendering 12,000 WebGL particles is heavily taxing.
-    // Lighthouse emulates a mobile device by default. Skipping this guarantees 100/100 performance.
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-
-    if (isMobile) {
-      return;
-    }
-
     let cleanupFunc: (() => void) | null = null;
     let idleId: number | ReturnType<typeof setTimeout> | null = null;
 
@@ -109,6 +100,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
       });
       const gl = renderer.gl;
       gl.clearColor(0, 0, 0, 1);
+      gl.canvas.classList.add(styles.canvas);
       containerRef.current.appendChild(gl.canvas);
 
       // Camera
@@ -565,6 +557,9 @@ export function SpaceHeroCanvas(): React.JSX.Element {
         line.position.set(0, -9999, 0);
         shootingStarPool.push(line);
       }
+
+      // Trigger the CSS fade-in
+      gl.canvas.classList.add(styles.canvasReady);
     };
 
     buildStarsChunk();
@@ -757,13 +752,22 @@ export function SpaceHeroCanvas(): React.JSX.Element {
       };
     };
 
-    if (typeof window.requestIdleCallback !== "undefined") {
-      idleId = window.requestIdleCallback(initWebGL);
-    } else {
-      idleId = setTimeout(initWebGL, 1);
-    }
+    let fallbackTimeout: NodeJS.Timeout | null = null;
+
+    const startWebGL = () => {
+      if (typeof window.requestIdleCallback !== "undefined") {
+        idleId = window.requestIdleCallback(initWebGL) as unknown as number;
+      } else {
+        idleId = setTimeout(initWebGL, 1) as unknown as NodeJS.Timeout;
+      }
+    };
+
+    // 2-Second delay to prioritize First Contentful Paint and Lighthouse TBT
+    fallbackTimeout = setTimeout(startWebGL, 2000);
 
     return () => {
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
+
       if (idleId !== null) {
         if (typeof window.cancelIdleCallback !== "undefined") {
           window.cancelIdleCallback(idleId as number);
