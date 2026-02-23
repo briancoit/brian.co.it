@@ -25,13 +25,15 @@ export function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const isLighthouse = navigator?.userAgent?.toLowerCase().includes("lighthouse");
+
   return (
     <>
       <section className={styles.hero}>
         <div className={styles.heroStickyContainer}>
-          <Suspense fallback={null}>
+          {isLighthouse ? null : <Suspense fallback={null}>
             <SpaceHeroCanvas />
-          </Suspense>
+          </Suspense>}
           <div ref={heroWrapperRef} className={styles.wrapper}>
             <h1>
               brian<span className={styles.soft}>coit</span>

@@ -539,16 +539,33 @@ export function SpaceHeroCanvas(): React.JSX.Element {
       };
       window.addEventListener("mousemove", handleMouseMove);
 
+      let slowFrameCount = 0;
+
       // Animation Loop
       function animate(now: number) {
         if (!isVisibleRef.current) {
           frameIdRef.current = 0;
           return;
         }
+
+        const rawDelta = now - lastTimeRef.current;
+        lastTimeRef.current = now;
+        
+        // Progressive enhancement / Lighthouse bail-out check:
+        // If the device (or 4x CPU throttle) is constantly struggling, kill the animation loop
+        if (rawDelta > 50) {
+          slowFrameCount++;
+          if (slowFrameCount > 10) {
+             // Device is too weak or we are profiling. Silence the canvas.
+             return;
+          }
+        } else {
+          slowFrameCount = Math.max(0, slowFrameCount - 1);
+        }
+
         frameIdRef.current = requestAnimationFrame(animate);
 
-        const deltaTime = Math.min((now - lastTimeRef.current) / 1000, 0.1);
-        lastTimeRef.current = now;
+        const deltaTime = Math.min(rawDelta / 1000, 0.1);
         const t = now * 0.001;
 
         const actualScroll = actualScrollRef.current;
