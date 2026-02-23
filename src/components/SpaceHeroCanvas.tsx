@@ -97,7 +97,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     containerRef.current.appendChild(gl.canvas);
 
     // Camera
-    const camera = new Camera(gl, { fov: 60, near: 0.1, far: 2000 });
+    const camera = new Camera(gl, { fov: 60, near: 0.1, far: 5000 });
     camera.position.z = 500;
 
     // Scene root
@@ -153,7 +153,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     for (let i = 0; i < cloudCount; i++) {
       const color =
         nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
-      const opacity = 0.12 + Math.random() * 0.15;
+      const opacity = 0.045 + Math.random() * 0.055; // Sweet spot
       const scale = 500 + Math.random() * 700;
 
       const angleStep = (Math.PI * 2) / cloudCount;
