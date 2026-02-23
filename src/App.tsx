@@ -1,13 +1,8 @@
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import styles from "./App.module.css";
 import { ContactForm } from "./components/ContactForm/ContactForm";
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
-
-const SpaceHeroCanvas = lazy(() =>
-  import("./components/SpaceHeroCanvas").then(({ SpaceHeroCanvas }) => ({
-    default: SpaceHeroCanvas,
-  })),
-);
+import { SpaceHeroCanvas } from "./components/SpaceHeroCanvas";
 
 // const ContactForm = lazy(() =>
 //   import(/* @vite-preload */ "./components/ContactForm/ContactForm").then(({ContactForm}) => ({
