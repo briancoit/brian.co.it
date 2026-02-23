@@ -22,11 +22,18 @@ export default defineConfig({
       },
     },
     terserOptions: {
+      ecma: 2020,
       compress: {
+        ecma: 2020,
         passes: 3,
         drop_console: true,
         drop_debugger: true,
-        pure_funcs: ["console.log"],
+        pure_funcs: ["console.log", "console.warn", "console.info"],
+        pure_getters: true,
+        toplevel: true,
+        unsafe_methods: true,
+        unsafe_proto: true,
+        unsafe_undefined: true,
       },
       mangle: {
         toplevel: true,
