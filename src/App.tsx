@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import styles from "./App.module.css";
 import { ContactForm } from "./components/ContactForm/ContactForm";
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
@@ -11,14 +11,15 @@ import { SpaceHeroCanvas } from "./components/SpaceHeroCanvas";
 // );
 
 export function App() {
-  const [heroOpacity, setHeroOpacity] = useState(1);
+  const heroWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
+      if (!heroWrapperRef.current) return;
       const scrollY = window.scrollY;
       // Hold at 1 for first 700px, then fade out over next 500px
       const opacity = Math.max(0, Math.min(1, 1 - (scrollY - 700) / 500));
-      setHeroOpacity(opacity);
+      heroWrapperRef.current.style.opacity = String(opacity);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -31,7 +32,7 @@ export function App() {
           <Suspense fallback={null}>
             <SpaceHeroCanvas />
           </Suspense>
-          <div className={styles.wrapper} style={{ opacity: heroOpacity }}>
+          <div ref={heroWrapperRef} className={styles.wrapper}>
             <h1>
               brian<span className={styles.soft}>coit</span>
               <br />
