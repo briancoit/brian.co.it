@@ -10,7 +10,6 @@ import { SpaceHeroCanvas } from "./components/SpaceHeroCanvas";
 //   })),
 // );
 
-
 export function App() {
   const [heroOpacity, setHeroOpacity] = useState(1);
 
