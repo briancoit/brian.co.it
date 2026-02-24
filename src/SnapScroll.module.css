@@ -1,0 +1,21 @@
+/* SnapScroll.module.css */
+
+.scrollContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: scroll; /* Enable scrolling */
+  scroll-snap-type: y mandatory; /* Enable scroll snapping */
+  scroll-behavior: smooth; /* Enable smooth scroll behavior */
+}
+
+.scrollItem {
+  height: 100%; /* Ensure each child takes the full viewport height */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Background color is optional, but height and width are critical for snapping */
+  scroll-snap-align: start; /* Ensure items snap to the top */
+  /* You can remove the background, but ensure the height is still set */
+}

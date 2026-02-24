@@ -1,6 +1,5 @@
 .container {
-  position: fixed;
-  inset: 0;
+  position: absolute;
 }
 
 .canvas {
