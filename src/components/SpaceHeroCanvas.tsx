@@ -31,44 +31,46 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     const handleScroll = () => {
       if (!containerRef.current) return;
       const vh = window.innerHeight;
-      
+
       // Try to find a scrollable parent container (from SnapScroll or similar)
       let scrollContainer = null;
       let scrollY = 0;
-      
+
       // Check if there's a scroll container ancestor
       let parent = containerRef.current.parentElement;
       while (parent) {
-        const hasOverflow = 
-          window.getComputedStyle(parent).overflowY === 'scroll' ||
-          window.getComputedStyle(parent).overflowY === 'auto';
+        const hasOverflow =
+          window.getComputedStyle(parent).overflowY === "scroll" ||
+          window.getComputedStyle(parent).overflowY === "auto";
         if (hasOverflow && parent.scrollHeight > parent.clientHeight) {
           scrollContainer = parent;
           break;
         }
         parent = parent.parentElement;
       }
-      
+
       // If not found in parent chain, search document for scrollable element
       if (!scrollContainer) {
         const allElements = document.querySelectorAll('[style*="overflowY"]');
         for (const el of allElements) {
           const overflow = window.getComputedStyle(el).overflowY;
-          if ((overflow === 'scroll' || overflow === 'auto') && 
-              el.scrollHeight > el.clientHeight) {
+          if (
+            (overflow === "scroll" || overflow === "auto") &&
+            el.scrollHeight > el.clientHeight
+          ) {
             scrollContainer = el as Element;
             break;
           }
         }
       }
-      
+
       // Use scroll container if found, otherwise use window
       if (scrollContainer) {
         scrollY = scrollContainer.scrollTop;
       } else {
         scrollY = window.scrollY;
       }
-      
+
       targetParallaxRef.current = scrollY / vh;
       actualScrollRef.current = scrollY;
     };
@@ -77,32 +79,34 @@ export function SpaceHeroCanvas(): React.JSX.Element {
     let scrollTarget: Window | Element | null = null;
     let parent = containerRef.current?.parentElement;
     while (parent) {
-      const hasOverflow = 
-        window.getComputedStyle(parent).overflowY === 'scroll' ||
-        window.getComputedStyle(parent).overflowY === 'auto';
+      const hasOverflow =
+        window.getComputedStyle(parent).overflowY === "scroll" ||
+        window.getComputedStyle(parent).overflowY === "auto";
       if (hasOverflow && parent.scrollHeight > parent.clientHeight) {
         scrollTarget = parent;
         break;
       }
       parent = parent.parentElement;
     }
-    
+
     // If not found in parent chain, search document for scrollable element
     if (!scrollTarget) {
       const allElements = document.querySelectorAll('[style*="overflowY"]');
       for (const el of allElements) {
         const overflow = window.getComputedStyle(el).overflowY;
-        if ((overflow === 'scroll' || overflow === 'auto') && 
-            el.scrollHeight > el.clientHeight) {
+        if (
+          (overflow === "scroll" || overflow === "auto") &&
+          el.scrollHeight > el.clientHeight
+        ) {
           scrollTarget = el;
           break;
         }
       }
     }
-    
+
     // Default to window if no scroll container found
     scrollTarget = scrollTarget || window;
-    
+
     scrollTarget.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => scrollTarget?.removeEventListener("scroll", handleScroll);

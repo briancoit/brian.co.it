@@ -24,79 +24,83 @@ export function App() {
   useEffect(() => {
     const handleScroll = () => {
       if (!heroWrapperRef.current) return;
-      
+
       // Try to find a scrollable parent container (from SnapScroll or similar)
       let scrollContainer = null;
       let scrollY = 0;
-      
+
       // Check if there's a scroll container ancestor
       let parent = heroWrapperRef.current.parentElement;
       while (parent) {
-        const hasOverflow = 
-          window.getComputedStyle(parent).overflowY === 'scroll' ||
-          window.getComputedStyle(parent).overflowY === 'auto';
+        const hasOverflow =
+          window.getComputedStyle(parent).overflowY === "scroll" ||
+          window.getComputedStyle(parent).overflowY === "auto";
         if (hasOverflow && parent.scrollHeight > parent.clientHeight) {
           scrollContainer = parent;
           break;
         }
         parent = parent.parentElement;
       }
-      
+
       // If not found in parent chain, search document for scrollable element
       if (!scrollContainer) {
         const allElements = document.querySelectorAll('[style*="overflowY"]');
         for (const el of allElements) {
           const overflow = window.getComputedStyle(el).overflowY;
-          if ((overflow === 'scroll' || overflow === 'auto') && 
-              el.scrollHeight > el.clientHeight) {
+          if (
+            (overflow === "scroll" || overflow === "auto") &&
+            el.scrollHeight > el.clientHeight
+          ) {
             scrollContainer = el as Element;
             break;
           }
         }
       }
-      
+
       // Use scroll container if found, otherwise use window
       if (scrollContainer) {
         scrollY = scrollContainer.scrollTop;
       } else {
         scrollY = window.scrollY;
       }
-      
+
       // Hold at 1 for first 700px, then fade out over next 500px
       const opacity = Math.max(0, Math.min(1, 1 - (scrollY - 700) / 500));
       heroWrapperRef.current.style.opacity = String(opacity);
     };
-    
+
     // Try to find and attach to scroll container
     let scrollTarget: Window | Element | null = null;
     let parent = heroWrapperRef.current?.parentElement;
     while (parent) {
-      const hasOverflow = 
-        window.getComputedStyle(parent).overflowY === 'scroll' ||
-        window.getComputedStyle(parent).overflowY === 'auto';
+      const hasOverflow =
+        window.getComputedStyle(parent).overflowY === "scroll" ||
+        window.getComputedStyle(parent).overflowY === "auto";
       if (hasOverflow && parent.scrollHeight > parent.clientHeight) {
         scrollTarget = parent;
         break;
       }
       parent = parent.parentElement;
     }
-    
+
     // If not found in parent chain, search document for scrollable element
     if (!scrollTarget) {
       const allElements = document.querySelectorAll('[style*="overflowY"]');
       for (const el of allElements) {
         const overflow = window.getComputedStyle(el).overflowY;
-        if ((overflow === 'scroll' || overflow === 'auto') && 
-            el.scrollHeight > el.clientHeight) {
+        if (
+          (overflow === "scroll" || overflow === "auto") &&
+          el.scrollHeight > el.clientHeight
+        ) {
           scrollTarget = el;
           break;
         }
       }
     }
-    
+
     // Default to window if no scroll container found
     scrollTarget = scrollTarget || window;
-    
+
     scrollTarget.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => scrollTarget?.removeEventListener("scroll", handleScroll);
@@ -121,35 +125,35 @@ export function App() {
           </div>
         </div>
       </section>
-        <section className={styles.middleSection}>
-          <div className={`${styles.wrapper} ${styles.bentoGrid}`}>
-            <div className={`${styles.bentoCard} ${styles.bentoCardBio}`}>
-              <p>
-                I build software that works and lasts. I've led teams, shipped
-                cloud platforms, and improved code, all with one goal: make
-                things run well.
-              </p>
-              <p>
-                No fluff, no endless meetings—just focused effort. I care about
-                results, clear process, and making sure the work stands up to
-                real-world use.
-              </p>
-              <p>
-                Every project needs honest feedback and strong execution. If you
-                want straight answers, real progress, and a transparent
-                approach, let's talk.
-              </p>
-            </div>
-            <EmploymentHistory />
+      <section className={styles.middleSection}>
+        <div className={`${styles.wrapper} ${styles.bentoGrid}`}>
+          <div className={`${styles.bentoCard} ${styles.bentoCardBio}`}>
+            <p>
+              I build software that works and lasts. I've led teams, shipped
+              cloud platforms, and improved code, all with one goal: make things
+              run well.
+            </p>
+            <p>
+              No fluff, no endless meetings—just focused effort. I care about
+              results, clear process, and making sure the work stands up to
+              real-world use.
+            </p>
+            <p>
+              Every project needs honest feedback and strong execution. If you
+              want straight answers, real progress, and a transparent approach,
+              let's talk.
+            </p>
           </div>
-        </section>
-        <section className={styles.contactWrapper}>
-          <div className={styles.wrapper}>
-            <Suspense fallback={null}>
-              <ContactForm />
-            </Suspense>
-          </div>
-        </section>
-      </SnapScroll>
-    );
-  }
+          <EmploymentHistory />
+        </div>
+      </section>
+      <section className={styles.contactWrapper}>
+        <div className={styles.wrapper}>
+          <Suspense fallback={null}>
+            <ContactForm />
+          </Suspense>
+        </div>
+      </section>
+    </SnapScroll>
+  );
+}
