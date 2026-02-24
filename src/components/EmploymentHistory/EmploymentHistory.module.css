@@ -2,6 +2,7 @@
   grid-column: 1 / -1;
   position: relative;
   padding-left: 28px;
+  margin-bottom: 3rem;
 }
 
 .timeline::before {
@@ -53,6 +54,7 @@
   font-size: 20px;
   font-weight: 600;
   align-content: center;
+  transition: text-shadow 0.2s ease;
 }
 
 .linkedin:hover span {
@@ -60,6 +62,8 @@
   background-clip: unset;
   -webkit-background-clip: unset;
   -webkit-text-fill-color: unset;
+
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
 @keyframes textShine {

@@ -44,13 +44,15 @@ export const EmploymentHistory = memo(function EmploymentHistory() {
         dateEnd={new Date("2012-03-01")}
       /> */}
       </div>
-      <a
-        href="https://uk.linkedin.com/in/briancoit"
-        className={styles.linkedin}
-      >
-        <LinkedInIcon width={48} height={48} />
-        <span>View my profile on LinkedIn</span>
-      </a>
+      <div>
+        <a
+          href="https://uk.linkedin.com/in/briancoit"
+          className={styles.linkedin}
+        >
+          <LinkedInIcon width={48} height={48} />
+          <span>View my profile on LinkedIn</span>
+        </a>
+      </div>
     </div>
   );
 });

@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { lazy, Suspense, useEffect, useRef } from "react";
 import styles from "./App.module.css";
 import { ContactForm } from "./components/ContactForm/ContactForm";
@@ -126,8 +127,8 @@ export function App() {
         </div>
       </section>
       <section className={styles.middleSection}>
-        <div className={`${styles.wrapper} ${styles.bentoGrid}`}>
-          <div className={`${styles.bentoCard} ${styles.bentoCardBio}`}>
+        <div className={clsx(styles.wrapper, styles.bentoGrid)}>
+          <div className={clsx(styles.bentoCard, styles.bentoCardBio)}>
             <p>
               I build software that works and lasts. I've led teams, shipped
               cloud platforms, and improved code, all with one goal: make things
@@ -144,14 +145,24 @@ export function App() {
               let's talk.
             </p>
           </div>
-          <EmploymentHistory />
+        </div>
+      </section>
+      <section className={styles.contactSection}>
+        <div className={clsx(styles.wrapper, styles.bentoGrid)}>
+          <div className={clsx(styles.bentoCard, styles.bentoCardBio)}>
+            <EmploymentHistory />
+          </div>
         </div>
       </section>
       <section className={styles.contactWrapper}>
-        <div className={styles.wrapper}>
-          <Suspense fallback={null}>
-            <ContactForm />
-          </Suspense>
+        <div className={clsx(styles.wrapper, styles.bentoGrid)}>
+          <div className={clsx(styles.bentoCard, styles.bentoCardBio)}>
+            <div className={styles.wrapper}>
+              <Suspense fallback={null}>
+                <ContactForm />
+              </Suspense>
+            </div>
+          </div>
         </div>
       </section>
     </SnapScroll>
