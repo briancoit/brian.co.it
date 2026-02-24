@@ -33,6 +33,7 @@
   },
   "type": "module",
   "dependencies": {
+    "clsx": "^2.1.1",
     "globe.gl": "^2.20.0",
     "ogl": "^1.0.11"
   }
