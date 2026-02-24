@@ -63,6 +63,7 @@
   background-color: rgba(255, 255, 255, 0.1); /* Dark overlay */
   background-blend-mode: darken; /* Blend the overlay with the background */
   margin-bottom: 1rem;
+  z-index: 1010;
 }
 
 /* .bentoCard:hover {
