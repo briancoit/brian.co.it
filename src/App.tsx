@@ -71,7 +71,13 @@ export function App() {
               let's talk.
             </p>
           </div>
-          <EmploymentHistory />
+        </div>
+      </section>
+      <section className={styles.contactSection}>
+        <div className={clsx(styles.wrapper, styles.bentoGrid)}>
+          <div className={clsx(styles.bentoCard, styles.bentoCardBio)}>
+            <EmploymentHistory />
+          </div>
         </div>
       </section>
       <section className={styles.contactWrapper}>
