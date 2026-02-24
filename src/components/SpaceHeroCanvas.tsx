@@ -487,7 +487,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
         const actualScroll = actualScrollRef.current;
         // Spin starts immediately and accelerates with scroll
         targetRotationRef.current =
-          Math.pow(Math.max(0, actualScroll) / 1000, 1.2) * 0.5;
+          (Math.max(0, actualScroll) / 1000) ** 1.2 * 0.5;
 
         const rotationLerp = 1 - 0.01 ** deltaTime;
         currentRotationRef.current +=

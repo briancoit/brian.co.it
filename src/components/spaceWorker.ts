@@ -1,7 +1,10 @@
 declare function postMessage(message: unknown, transfer: Transferable[]): void;
 
 function gaussRand() {
-  return Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random());
+  return (
+    Math.sqrt(-2 * Math.log(Math.random())) *
+    Math.cos(2 * Math.PI * Math.random())
+  );
 }
 
 function generateStars(count: number) {
@@ -14,7 +17,13 @@ function generateStars(count: number) {
 
   // Generate random cluster centers within the star shell
   const clusterCount = 8 + Math.floor(Math.random() * 8);
-  const clusters: { x: number; y: number; z: number; radius: number; tint: number }[] = [];
+  const clusters: {
+    x: number;
+    y: number;
+    z: number;
+    radius: number;
+    tint: number;
+  }[] = [];
   for (let c = 0; c < clusterCount; c++) {
     const r = 1000 + Math.random() * 1000;
     const theta = 2 * Math.PI * Math.random();
