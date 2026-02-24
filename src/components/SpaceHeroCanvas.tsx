@@ -142,7 +142,7 @@ export function SpaceHeroCanvas(): React.JSX.Element {
         for (let i = 0; i < cloudCount; i++) {
           const color =
             nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
-          const opacity = 0.045 + Math.random() * 0.055;
+          const opacity = 0.045 + Math.random() * 0.095;
           const scale = 500 + Math.random() * 700;
 
           const angleStep = (Math.PI * 2) / cloudCount;
@@ -472,14 +472,14 @@ export function SpaceHeroCanvas(): React.JSX.Element {
         const rawDelta = now - lastTimeRef.current;
         lastTimeRef.current = now;
 
+        frameIdRef.current = requestAnimationFrame(animate);
+
         if (rawDelta > 50) {
           slowFrameCount++;
           if (slowFrameCount > 10) return;
         } else {
           slowFrameCount = Math.max(0, slowFrameCount - 1);
         }
-
-        frameIdRef.current = requestAnimationFrame(animate);
 
         const deltaTime = Math.min(rawDelta / 1000, 0.1);
         const t = now * 0.001;
