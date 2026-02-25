@@ -70,6 +70,19 @@ export const SnapScroll = ({
         const h = el.clientHeight;
         if (h > 0) indexRef.current = Math.round(el.scrollTop / h);
       }, 100);
+
+      // Fade panes based on distance from viewport center
+      const h = el.clientHeight;
+      if (h === 0) return;
+      const scrollTop = el.scrollTop;
+      const items = el.querySelectorAll(`.${styles.scrollItem}`) as NodeListOf<HTMLElement>;
+      for (const item of items) {
+        const itemTop = item.offsetTop;
+        const offset = Math.abs(itemTop - scrollTop);
+        const t = Math.min(1, offset / (h * 0.4));
+        const opacity = 1 - t * t * (3 - 2 * t);
+        item.style.opacity = String(opacity);
+      }
     };
 
     el.addEventListener("scroll", handleScroll, { passive: true });
