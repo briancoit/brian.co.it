@@ -55,7 +55,7 @@
 .bentoCard {
   background: rgba(10, 10, 20, 0.7);
   border: none;
-  border-radius: 12px;
+  border-radius: 3px;
   padding: clamp(1.5rem, 3vw, 2.5rem);
   position: relative;
 

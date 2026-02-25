@@ -45,9 +45,10 @@ export const App = React.memo(function App() {
         parent = parent.parentElement;
       }
 
-      // If not found in parent chain, search document for scrollable element
       if (!scrollContainer) {
-        const allElements = document.querySelectorAll('[style*="overflowY"]');
+        const allElements = document.querySelectorAll(
+          '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]'
+        );
         for (const el of allElements) {
           const overflow = window.getComputedStyle(el).overflowY;
           if (
@@ -86,9 +87,10 @@ export const App = React.memo(function App() {
       parent = parent.parentElement;
     }
 
-    // If not found in parent chain, search document for scrollable element
     if (!scrollTarget) {
-      const allElements = document.querySelectorAll('[style*="overflowY"]');
+      const allElements = document.querySelectorAll(
+        '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]'
+      );
       for (const el of allElements) {
         const overflow = window.getComputedStyle(el).overflowY;
         if (
@@ -159,10 +161,11 @@ export const App = React.memo(function App() {
   }, []);
 
   return (
-    <SnapScroll>
+    <>
       <Suspense fallback={null}>
         <LazySpaceHeroCanvas />
       </Suspense>
+    <SnapScroll>
       <section className={styles.hero}>
         <div className={styles.heroStickyContainer}>
           <div ref={heroWrapperRef} className={styles.wrapper}>
@@ -217,5 +220,6 @@ export const App = React.memo(function App() {
         </div>
       </section>
     </SnapScroll>
+    </>
   );
 });

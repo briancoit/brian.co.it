@@ -76,7 +76,9 @@ export const SnapScroll = ({
       if (h === 0) return;
       const scrollTop = el.scrollTop;
       const items = el.querySelectorAll(`.${styles.scrollItem}`) as NodeListOf<HTMLElement>;
-      for (const item of items) {
+      for (let i = 0; i < items.length; i++) {
+        if (i === 0) continue;
+        const item = items[i];
         const itemTop = item.offsetTop;
         const offset = Math.abs(itemTop - scrollTop);
         const t = Math.min(1, offset / (h * 0.4));
