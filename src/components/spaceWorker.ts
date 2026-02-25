@@ -97,15 +97,19 @@ function generateStars(count: number) {
     let cR = 1.0;
     let cG = 1.0;
     let cB = 1.0;
-    if (isClusterStar && clusterRef) {
-      if (clusterRef.tint < 0.33) {
-        cR = 0.75 + Math.random() * 0.1;
-        cG = 0.85 + Math.random() * 0.1;
+    if (isClusterStar) {
+      if (colorSeed < 0.25) {
+        cR = 0.7 + Math.random() * 0.1;
+        cG = 0.8 + Math.random() * 0.1;
         cB = 1.0;
-      } else if (clusterRef.tint < 0.66) {
+      } else if (colorSeed < 0.5) {
         cR = 1.0;
-        cG = 0.92 + Math.random() * 0.08;
-        cB = 0.75 + Math.random() * 0.1;
+        cG = 0.9 + Math.random() * 0.1;
+        cB = 0.7 + Math.random() * 0.1;
+      } else if (colorSeed < 0.7) {
+        cR = 1.0;
+        cG = 0.75 + Math.random() * 0.1;
+        cB = 0.7 + Math.random() * 0.1;
       }
     } else if (colorSeed < 0.04) {
       cR = 0.7;
