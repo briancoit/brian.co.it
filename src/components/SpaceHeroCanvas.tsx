@@ -673,7 +673,8 @@ export const SpaceHeroCanvas = React.memo(
             scrollY + targetCameraPos.current.y,
             orbitalZ,
           );
-          camera.lookAt([0, scrollY, 0]);
+          const tiltAmount = currentParallaxRef.current * 150;
+          camera.lookAt([0, scrollY - tiltAmount, 0]);
           renderer.render({ scene, camera });
         }
 
