@@ -294,6 +294,7 @@ export const SpaceHeroCanvas = React.memo(
             varying float vOpacity;
             varying float vPhase;
             varying float vFogDepth;
+            varying float vDepth;
 
             void main() {
               vUv = uv;
@@ -334,6 +335,7 @@ export const SpaceHeroCanvas = React.memo(
               );
               mvPosition.xy += rotatedXY;
               vFogDepth = -mvPosition.z;
+              vDepth = length(wrappedOffset);
               gl_Position = projectionMatrix * mvPosition;
             }
           `,
@@ -346,6 +348,7 @@ export const SpaceHeroCanvas = React.memo(
             varying float vOpacity;
             varying float vPhase;
             varying float vFogDepth;
+            varying float vDepth;
 
             vec2 hash(vec2 p) {
               p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
@@ -369,19 +372,45 @@ export const SpaceHeroCanvas = React.memo(
 
             void main() {
               vec4 texColor = texture2D(uMap, vUv);
-              float shift = sin(uTime * 0.15 + vPhase) * 0.15;
-              vec3 shifted = vColor + vec3(shift * 0.3, shift * -0.1, shift * 0.2);
-              vec2 noiseUv = vUv * 4.0 + vec2(uTime * 0.8, uTime * 0.5) + vPhase;
+              
+              // Smooth, fluid time animation
+              vec2 timeShift = vec2(uTime * 0.4, uTime * 0.2) + vPhase;
+              
+              // 1. Distort UVs smoothly
+              vec2 noiseUv = vUv * 3.5 + timeShift;
               float n = fbm(noiseUv);
               float nNorm = n * 0.5 + 0.5;
-              float highlight = 0.4 + 0.6 * nNorm;
-              float flickerMask = smoothstep(0.55, 0.75, nNorm);
-              float flickerPulse = sin(uTime * 1.5 + vPhase * 3.0 + n * 6.0) * 0.5 + 0.5;
-              float flicker = flickerMask * flickerPulse * 0.6;
-              float alpha = texColor.a * vOpacity * (highlight + flicker);
+              
+              // 2. "Slick" Contrast Curve: Smoothstep instead of harsh pow
+              // This creates liquid-like, elegant gradients that still have sharp crests
+              float slickNoise = smoothstep(0.4, 0.9, nNorm);
+              
+              // 3. Dynamic iridescent shift
+              // The core of the cloud heats up to a sleek neon magenta/cyan mix
+              float iridescence = sin(uTime * 1.0 + vDepth * 5.0 + n * 4.0) * 0.5 + 0.5;
+              vec3 coreBase = mix(vec3(0.0, 0.4, 0.8), vec3(0.8, 0.2, 0.6), iridescence); 
+              
+              // Start with the original geometric shift mapped heavily by the fluid noise
+              vec3 shifted = mix(vColor, coreBase, slickNoise * 0.85);
+
+              // 4. Slick Highlights
+              // A smooth glow that rides the crests of the noise
+              float highlight = 0.3 + 1.2 * slickNoise;
+              
+              // 5. Elegant Scintillation
+              // Flickers only at the absolute brightest fluid peaks
+              float flickerMask = smoothstep(0.7, 1.0, nNorm);
+              float flickerPulse = sin(uTime * 3.0 + vPhase * 2.0 + n * 8.0) * 0.5 + 0.5;
+              float flicker = flickerMask * flickerPulse * 1.0;
+              
+              // 6. Premium Alpha Blending
+              // Dark voids remain perfectly dark, while fluid arcs glow intensely
+              float alpha = texColor.a * vOpacity * (highlight + flicker) * (0.8 + 0.6 * slickNoise);
+              
               float fogFactor = exp2( -0.0003 * 0.0003 * vFogDepth * vFogDepth * 1.442695 );
               fogFactor = clamp( fogFactor, 0.0, 1.0 );
               float nearFade = smoothstep(50.0, 350.0, vFogDepth);
+              
               gl_FragColor = vec4(shifted, alpha * fogFactor * nearFade);
             }
           `,
