@@ -17,7 +17,7 @@ export const SnapScroll = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Handle wheel scroll events
-  const handleWheel = (event: WheelEvent) => {
+  const handleWheel = (event: WheelEvent): void => {
     if (event.deltaY > 0 && scrollIndex < childCount - 1) {
       setScrollIndex((prevIndex) => prevIndex + 1); // down
     } else if (event.deltaY < 0 && scrollIndex > 0) {
@@ -26,7 +26,7 @@ export const SnapScroll = ({
   };
 
   // Handle keyboard scroll events
-  const handleKeyDown = (event: KeyboardEvent) => {
+  const handleKeyDown = (event: KeyboardEvent): void => {
     if (
       event.key === "ArrowDown" ||
       event.key === " " ||
@@ -42,7 +42,7 @@ export const SnapScroll = ({
     }
   };
 
-  const handleScroll = () => {
+  const handleScroll = (): void => {
     if (!containerRef.current) {
       return;
     }

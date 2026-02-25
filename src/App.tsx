@@ -147,14 +147,14 @@ export const App = React.memo(function App() {
           </div>
         </div>
       </section>
-      <section className={styles.contactSection}>
+      <section>
         <div className={clsx(styles.wrapper, styles.bentoGrid)}>
           <div className={clsx(styles.bentoCard, styles.bentoCardBio)}>
             <EmploymentHistory />
           </div>
         </div>
       </section>
-      <section className={styles.contactWrapper}>
+      <section>
         <div className={clsx(styles.wrapper, styles.bentoGrid)}>
           <div className={clsx(styles.bentoCard, styles.bentoCardBio)}>
             <div className={styles.wrapper}>

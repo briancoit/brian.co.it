@@ -93,12 +93,6 @@
   margin-bottom: 0;
 }
 
-/* Contact Section */
-.contactWrapper {
-  position: relative;
-  padding-bottom: 8rem;
-}
-
 /* Mobile */
 @media (max-width: 768px) {
   .bentoGrid {
