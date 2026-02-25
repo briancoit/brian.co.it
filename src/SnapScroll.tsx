@@ -1,29 +1,66 @@
 import clsx from "clsx";
-import React, { type ReactElement, useRef, useState } from "react";
+import React, { type ReactElement, useEffect, useRef } from "react";
 import { useEventListener } from "usehooks-ts";
 import styles from "./SnapScroll.module.css";
 
 interface SnapScrollProps {
   children: React.ReactNode;
-  threshold?: number; // Scroll threshold to trigger snapping (as a percentage of section height)
 }
 
 export const SnapScroll = ({
   children,
-  threshold = 0.2,
 }: SnapScrollProps): React.JSX.Element => {
-  const [scrollIndex, setScrollIndex] = useState(0);
   const childCount = React.Children.count(children);
   const containerRef = useRef<HTMLDivElement>(null);
+  const indexRef = useRef(0);
+  const isAnimating = useRef(false);
 
-  // Handle wheel scroll events
-  const handleWheel = (event: WheelEvent): void => {
-    if (event.deltaY > 0 && scrollIndex < childCount - 1) {
-      setScrollIndex((prevIndex) => prevIndex + 1); // down
-    } else if (event.deltaY < 0 && scrollIndex > 0) {
-      setScrollIndex((prevIndex) => prevIndex - 1); // up
-    }
-  };
+  const childCountRef = useRef(childCount);
+  childCountRef.current = childCount;
+
+  const scrollToIndex = useRef((index: number) => {
+    if (!containerRef.current) return;
+    const clamped = Math.max(0, Math.min(index, childCountRef.current - 1));
+    if (clamped === indexRef.current && isAnimating.current) return;
+    indexRef.current = clamped;
+    isAnimating.current = true;
+    const target = clamped * containerRef.current.clientHeight;
+    containerRef.current.scrollTo({ top: target, behavior: "smooth" });
+  });
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      if (isAnimating.current) return;
+      if (event.deltaY > 0) {
+        scrollToIndex.current(indexRef.current + 1);
+      } else if (event.deltaY < 0) {
+        scrollToIndex.current(indexRef.current - 1);
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    let scrollEndTimer: ReturnType<typeof setTimeout> | null = null;
+    const handleScroll = () => {
+      if (scrollEndTimer) clearTimeout(scrollEndTimer);
+      scrollEndTimer = setTimeout(() => {
+        isAnimating.current = false;
+      }, 100);
+    };
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Handle keyboard scroll events
   const handleKeyDown = (event: KeyboardEvent): void => {
@@ -32,37 +69,15 @@ export const SnapScroll = ({
       event.key === " " ||
       event.key === "PageDown"
     ) {
-      if (scrollIndex < childCount - 1) {
-        setScrollIndex((prevIndex) => prevIndex + 1); // Scroll down
-      }
+      event.preventDefault();
+      if (!isAnimating.current) scrollToIndex.current(indexRef.current + 1);
     } else if (event.key === "ArrowUp" || event.key === "PageUp") {
-      if (scrollIndex > 0) {
-        setScrollIndex((prevIndex) => prevIndex - 1); // Scroll up
-      }
-    }
-  };
-
-  const handleScroll = (): void => {
-    if (!containerRef.current) {
-      return;
-    }
-
-    const scrollPosition = containerRef.current.scrollTop;
-    const sectionHeight = containerRef.current.clientHeight;
-
-    // Calculate the distance to the next section
-    const snapThreshold = sectionHeight * threshold;
-    const nextIndex = Math.round(scrollPosition / sectionHeight);
-
-    // If we're close enough to the next or previous section, snap
-    if (Math.abs(scrollPosition - nextIndex * sectionHeight) < snapThreshold) {
-      setScrollIndex(nextIndex);
+      event.preventDefault();
+      if (!isAnimating.current) scrollToIndex.current(indexRef.current - 1);
     }
   };
 
   useEventListener("keydown", handleKeyDown);
-  useEventListener("wheel", handleWheel, undefined, { passive: true });
-  useEventListener("scroll", handleScroll);
 
   return (
     <div
@@ -70,9 +85,8 @@ export const SnapScroll = ({
       className={styles.scrollContainer}
       style={{
         height: "100vh",
-        overflowY: "scroll", // Make the container scrollable
-        scrollSnapType: "y mandatory", // Enable snap scrolling
-        scrollBehavior: "smooth", // Enable smooth scroll
+        overflowY: "scroll",
+        scrollBehavior: "smooth",
       }}
     >
       <div
@@ -84,12 +98,11 @@ export const SnapScroll = ({
         {React.Children.map(children, (child) => {
           if (React.isValidElement(child)) {
             const _child = child as ReactElement<{ className?: string }>;
-            // Clone the child and inject the scrollItem class
             return React.cloneElement(_child, {
               className: clsx(styles.scrollItem, _child.props.className),
             });
           }
-          return null; // Return null for non-React elements (shouldn't happen in this case)
+          return null;
         })}
       </div>
     </div>

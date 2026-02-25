@@ -21,6 +21,8 @@ const LazySpaceHeroCanvas = lazy(() =>
 
 export const App = React.memo(function App() {
   const heroWrapperRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const lastScrollTop = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -107,6 +109,55 @@ export const App = React.memo(function App() {
     return () => scrollTarget?.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const cards = cardRefs.current.filter(Boolean) as HTMLDivElement[];
+    if (cards.length === 0) return;
+
+    const scrollContainer =
+      cards[0].closest('[style*="overflowY"]') ||
+      cards[0].closest(".scrollContainer") ||
+      null;
+    const scrollEl = scrollContainer as HTMLElement | null;
+
+    const updateDirection = () => {
+      const top = scrollEl ? scrollEl.scrollTop : window.scrollY;
+      const dir = top >= lastScrollTop.current ? "down" : "up";
+      lastScrollTop.current = top;
+      for (const card of cards) {
+        if (!card.classList.contains(styles.cardVisible)) {
+          if (dir === "up") {
+            card.classList.add(styles.cardUp);
+          } else {
+            card.classList.remove(styles.cardUp);
+          }
+        }
+      }
+    };
+
+    const target = scrollEl || window;
+    target.addEventListener("scroll", updateDirection, { passive: true });
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add(styles.cardVisible);
+          } else {
+            (entry.target as HTMLElement).classList.remove(styles.cardVisible);
+          }
+        }
+      },
+      { threshold: 0.15, root: scrollEl },
+    );
+
+    for (const card of cards) observer.observe(card);
+
+    return () => {
+      observer.disconnect();
+      target.removeEventListener("scroll", updateDirection);
+    };
+  }, []);
+
   return (
     <SnapScroll>
       <Suspense fallback={null}>
@@ -128,7 +179,7 @@ export const App = React.memo(function App() {
       </section>
       <section className={styles.middleSection}>
         <div className={clsx(styles.wrapper, styles.bentoGrid)}>
-          <div className={clsx(styles.bentoCard, styles.bentoCardBio)}>
+          <div ref={(el) => { cardRefs.current[0] = el; }} className={clsx(styles.bentoCard, styles.bentoCardBio)}>
             <p>
               I build software that works and lasts. I've led teams, shipped
               cloud platforms, and improved code, all with one goal: make things
@@ -149,14 +200,14 @@ export const App = React.memo(function App() {
       </section>
       <section>
         <div className={clsx(styles.wrapper, styles.bentoGrid)}>
-          <div className={clsx(styles.bentoCard, styles.bentoCardBio)}>
+          <div ref={(el) => { cardRefs.current[1] = el; }} className={clsx(styles.bentoCard, styles.bentoCardBio)}>
             <EmploymentHistory />
           </div>
         </div>
       </section>
       <section>
         <div className={clsx(styles.wrapper, styles.bentoGrid)}>
-          <div className={clsx(styles.bentoCard, styles.bentoCardBio)}>
+          <div ref={(el) => { cardRefs.current[2] = el; }} className={clsx(styles.bentoCard, styles.bentoCardBio)}>
             <div className={styles.wrapper}>
               <Suspense fallback={null}>
                 <ContactForm />

@@ -5,8 +5,7 @@
   flex-direction: column;
   height: 100vh;
   overflow-y: scroll; /* Enable scrolling */
-  scroll-snap-type: y mandatory; /* Enable scroll snapping */
-  scroll-behavior: smooth; /* Enable smooth scroll behavior */
+  scroll-behavior: smooth;
 
   &::-webkit-scrollbar {
     display: none; /* Hides the scrollbar */
@@ -20,7 +19,7 @@
   justify-content: center;
   align-items: center;
   /* Background color is optional, but height and width are critical for snapping */
-  scroll-snap-align: start; /* Ensure items snap to the top */
+
   /* You can remove the background, but ensure the height is still set */
   z-index: 1020;
   position: relative;

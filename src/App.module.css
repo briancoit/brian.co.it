@@ -58,10 +58,6 @@
   border-radius: 12px;
   padding: clamp(1.5rem, 3vw, 2.5rem);
   position: relative;
-  transition:
-    transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    border-color 0.35s ease,
-    box-shadow 0.35s ease;
 
   backdrop-filter: blur(16px);
   box-shadow:
@@ -70,6 +66,26 @@
     0 0 0 1px rgba(255, 255, 255, 0.03);
   margin-bottom: 1rem;
   z-index: 1010;
+}
+
+/* Card entrance animation */
+.bentoCard {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.cardUp {
+  transform: translateY(-40px);
+}
+
+.cardVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Bio card — spans full width */
