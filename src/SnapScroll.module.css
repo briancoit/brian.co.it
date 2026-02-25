@@ -7,6 +7,10 @@
   overflow-y: scroll; /* Enable scrolling */
   scroll-snap-type: y mandatory; /* Enable scroll snapping */
   scroll-behavior: smooth; /* Enable smooth scroll behavior */
+
+  &::-webkit-scrollbar {
+    display: none; /* Hides the scrollbar */
+  }
 }
 
 .scrollItem {
@@ -18,4 +22,6 @@
   /* Background color is optional, but height and width are critical for snapping */
   scroll-snap-align: start; /* Ensure items snap to the top */
   /* You can remove the background, but ensure the height is still set */
+  z-index: 1020;
+  position: relative;
 }

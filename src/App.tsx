@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { lazy, Suspense, useEffect, useRef } from "react";
+import React, { lazy, Suspense, useEffect, useRef } from "react";
 import styles from "./App.module.css";
 import { ContactForm } from "./components/ContactForm/ContactForm";
 import { EmploymentHistory } from "./components/EmploymentHistory/EmploymentHistory";
@@ -19,7 +19,7 @@ const LazySpaceHeroCanvas = lazy(() =>
 //   })),
 // );
 
-export function App() {
+export const App = React.memo(function App() {
   const heroWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -116,11 +116,11 @@ export function App() {
         <div className={styles.heroStickyContainer}>
           <div ref={heroWrapperRef} className={styles.wrapper}>
             <h1>
-              brian<span className={styles.soft}>coit</span>
-              <br />
+              {/* brian<span className={styles.soft}>coit</span>
+              <br /> */}
               Hi, I'm Brian.{" "}
               <div className={styles.soft}>
-                Principal Software Engineer. Let's get to work.
+                Principal Software Engineer.{/* Let's get to work.*/}
               </div>
             </h1>
           </div>
@@ -167,4 +167,4 @@ export function App() {
       </section>
     </SnapScroll>
   );
-}
+});

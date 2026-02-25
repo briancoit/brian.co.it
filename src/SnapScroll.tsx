@@ -1,13 +1,17 @@
 import clsx from "clsx";
-import React, { type ReactElement, useEffect, useRef, useState } from "react";
+import React, { type ReactElement, useRef, useState } from "react";
+import { useEventListener } from "usehooks-ts";
 import styles from "./SnapScroll.module.css";
 
 interface SnapScrollProps {
   children: React.ReactNode;
-  threshold: number; // Scroll threshold to trigger snapping (as a percentage of section height)
+  threshold?: number; // Scroll threshold to trigger snapping (as a percentage of section height)
 }
 
-export const SnapScroll = ({ children, threshold = 0.2 }: SnapScrollProps) => {
+export const SnapScroll = ({
+  children,
+  threshold = 0.2,
+}: SnapScrollProps): React.JSX.Element => {
   const [scrollIndex, setScrollIndex] = useState(0);
   const childCount = React.Children.count(children);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -15,9 +19,9 @@ export const SnapScroll = ({ children, threshold = 0.2 }: SnapScrollProps) => {
   // Handle wheel scroll events
   const handleWheel = (event: WheelEvent) => {
     if (event.deltaY > 0 && scrollIndex < childCount - 1) {
-      setScrollIndex((prevIndex) => prevIndex + 1); // Scroll down
+      setScrollIndex((prevIndex) => prevIndex + 1); // down
     } else if (event.deltaY < 0 && scrollIndex > 0) {
-      setScrollIndex((prevIndex) => prevIndex - 1); // Scroll up
+      setScrollIndex((prevIndex) => prevIndex - 1); // up
     }
   };
 
@@ -38,41 +42,27 @@ export const SnapScroll = ({ children, threshold = 0.2 }: SnapScrollProps) => {
     }
   };
 
-  // Snap scrolling behavior based on the threshold
-  const handleSnap = () => {
-    if (containerRef.current) {
-      const scrollPosition = containerRef.current.scrollTop;
-      const sectionHeight = containerRef.current.clientHeight;
+  const handleScroll = () => {
+    if (!containerRef.current) {
+      return;
+    }
 
-      // Calculate the distance to the next section
-      const snapThreshold = sectionHeight * threshold;
-      const nextIndex = Math.round(scrollPosition / sectionHeight);
+    const scrollPosition = containerRef.current.scrollTop;
+    const sectionHeight = containerRef.current.clientHeight;
 
-      // If we're close enough to the next or previous section, snap
-      if (
-        Math.abs(scrollPosition - nextIndex * sectionHeight) < snapThreshold
-      ) {
-        setScrollIndex(nextIndex);
-      }
+    // Calculate the distance to the next section
+    const snapThreshold = sectionHeight * threshold;
+    const nextIndex = Math.round(scrollPosition / sectionHeight);
+
+    // If we're close enough to the next or previous section, snap
+    if (Math.abs(scrollPosition - nextIndex * sectionHeight) < snapThreshold) {
+      setScrollIndex(nextIndex);
     }
   };
 
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    if (containerRef.current) {
-      containerRef.current.addEventListener("wheel", handleWheel, {
-        passive: true,
-      });
-      containerRef.current.addEventListener("scroll", handleSnap);
-    }
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      if (containerRef.current) {
-        containerRef.current.removeEventListener("wheel", handleWheel);
-        containerRef.current.removeEventListener("scroll", handleSnap);
-      }
-    };
-  }, [scrollIndex]);
+  useEventListener("keydown", handleKeyDown);
+  useEventListener("wheel", handleWheel, undefined, { passive: true });
+  useEventListener("scroll", handleScroll);
 
   return (
     <div
@@ -87,8 +77,6 @@ export const SnapScroll = ({ children, threshold = 0.2 }: SnapScrollProps) => {
     >
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
           height: "100%",
           width: "100%",
         }}
