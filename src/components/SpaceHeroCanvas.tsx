@@ -376,7 +376,8 @@ export const SpaceHeroCanvas = React.memo(
               float alpha = texColor.a * vOpacity * (highlight + flicker);
               float fogFactor = exp2( -0.0003 * 0.0003 * vFogDepth * vFogDepth * 1.442695 );
               fogFactor = clamp( fogFactor, 0.0, 1.0 );
-              gl_FragColor = vec4(shifted, alpha * fogFactor);
+              float nearFade = smoothstep(50.0, 350.0, vFogDepth);
+              gl_FragColor = vec4(shifted, alpha * fogFactor * nearFade);
             }
           `,
             uniforms: {
@@ -463,7 +464,7 @@ export const SpaceHeroCanvas = React.memo(
               float alpha = 1.0 - smoothstep(0.0, 0.48, dist);
               float glow = vGlow * (1.0 - smoothstep(0.0, 0.5, dist)) * 0.6;
               
-              float outAlpha = (alpha + glow) * vAlpha;
+              float outAlpha = (alpha + glow) * vAlpha * 0.6;
               float fogFactor = exp2( -0.0003 * 0.0003 * vFogDepth * vFogDepth * 1.442695 );
               fogFactor = clamp( fogFactor, 0.0, 1.0 );
               
