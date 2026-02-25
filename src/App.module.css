@@ -114,7 +114,7 @@
 }
 
 .bentoCardBio p {
-  font-size: clamp(1.05rem, 2.2vw, 1.2rem);
+  font-size: clamp(1.2rem, 2.2vw, 1.25rem);
   max-width: 680px;
   line-height: 1.7;
 }
