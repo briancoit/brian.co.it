@@ -228,7 +228,7 @@ export const SpaceHeroCanvas = React.memo(
           for (let i = 0; i < cloudCount; i++) {
             const color =
               nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
-            const opacity = 0.045 + Math.random() * 0.12;
+            const opacity = 0.09 + Math.random() * 0.18;
             const scale = 500 + Math.random() * 700;
 
             const angleStep = (Math.PI * 2) / cloudCount;

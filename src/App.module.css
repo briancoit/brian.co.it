@@ -53,29 +53,24 @@
 
 /* Shared card base */
 .bentoCard {
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(15, 15, 25, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: clamp(1.5rem, 3vw, 2.5rem);
   position: relative;
   transition:
     transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    border-color 0.35s ease;
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
 
-  /* Adding a color overlay to intensify the background color */
-  background-color: rgba(255, 255, 255, 0.1); /* Dark overlay */
-  background-blend-mode: darken; /* Blend the overlay with the background */
+  backdrop-filter: blur(16px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
   margin-bottom: 1rem;
   z-index: 1010;
 }
-
-/* .bentoCard:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 8px 30px rgba(0, 0, 0, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.2);
-} */
 
 /* Bio card — spans full width */
 .bentoCardBio {
