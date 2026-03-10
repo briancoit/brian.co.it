@@ -28,26 +28,28 @@ export const SpaceHeroCanvas = React.memo(
     const currentRotationRef = useRef(0);
 
     useEffect(() => {
-      // Find the scroll container exactly once to avoid synchronous layout
-      // recalculations (`getComputedStyle`) on every scroll event tick.
-      let cachedScrollContainer: Element | null = null;
-      let scrollTarget: Window | Element = window;
+      const handleScroll = () => {
+        if (!containerRef.current) return;
+        const vh = window.innerHeight;
 
-      if (containerRef.current) {
+        // Try to find a scrollable parent container (from SnapScroll or similar)
+        let scrollContainer = null;
+        let scrollY = 0;
+
+        // Check if there's a scroll container ancestor
         let parent = containerRef.current.parentElement;
         while (parent) {
           const hasOverflow =
             window.getComputedStyle(parent).overflowY === "scroll" ||
             window.getComputedStyle(parent).overflowY === "auto";
           if (hasOverflow && parent.scrollHeight > parent.clientHeight) {
-            cachedScrollContainer = parent;
-            scrollTarget = parent;
+            scrollContainer = parent;
             break;
           }
           parent = parent.parentElement;
         }
 
-        if (!cachedScrollContainer) {
+        if (!scrollContainer) {
           const allElements = document.querySelectorAll(
             '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]'
           );
@@ -57,28 +59,59 @@ export const SpaceHeroCanvas = React.memo(
               (overflow === "scroll" || overflow === "auto") &&
               el.scrollHeight > el.clientHeight
             ) {
-              cachedScrollContainer = el as Element;
-              scrollTarget = el;
+              scrollContainer = el as Element;
               break;
             }
           }
         }
-      }
 
-      const handleScroll = () => {
-        const vh = window.innerHeight;
-        const scrollY = cachedScrollContainer
-          ? cachedScrollContainer.scrollTop
-          : window.scrollY;
+        // Use scroll container if found, otherwise use window
+        if (scrollContainer) {
+          scrollY = scrollContainer.scrollTop;
+        } else {
+          scrollY = window.scrollY;
+        }
 
         targetParallaxRef.current = scrollY / vh;
         actualScrollRef.current = scrollY;
       };
 
+      // Try to find and attach to scroll container
+      let scrollTarget: Window | Element | null = null;
+      let parent = containerRef.current?.parentElement;
+      while (parent) {
+        const hasOverflow =
+          window.getComputedStyle(parent).overflowY === "scroll" ||
+          window.getComputedStyle(parent).overflowY === "auto";
+        if (hasOverflow && parent.scrollHeight > parent.clientHeight) {
+          scrollTarget = parent;
+          break;
+        }
+        parent = parent.parentElement;
+      }
+
+      if (!scrollTarget) {
+        const allElements = document.querySelectorAll(
+          '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]'
+        );
+        for (const el of allElements) {
+          const overflow = window.getComputedStyle(el).overflowY;
+          if (
+            (overflow === "scroll" || overflow === "auto") &&
+            el.scrollHeight > el.clientHeight
+          ) {
+            scrollTarget = el;
+            break;
+          }
+        }
+      }
+
+      // Default to window if no scroll container found
+      scrollTarget = scrollTarget || window;
+
       scrollTarget.addEventListener("scroll", handleScroll, { passive: true });
-      handleScroll(); // Initial read
-      
-      return () => scrollTarget.removeEventListener("scroll", handleScroll);
+      handleScroll();
+      return () => scrollTarget?.removeEventListener("scroll", handleScroll);
     }, []);
 
     useEffect(() => {
@@ -92,10 +125,10 @@ export const SpaceHeroCanvas = React.memo(
 
         // Kick off heavy computation in a Web Worker immediately
         const worker = new Worker(
-          new URL("./spaceWorker.ts?v=11", import.meta.url),
+          new URL("./spaceWorker.ts", import.meta.url),
           {
             type: "module",
-          }
+          },
         );
         worker.postMessage("init");
 
@@ -103,10 +136,8 @@ export const SpaceHeroCanvas = React.memo(
         const renderer = new Renderer({
           alpha: false,
           antialias: true,
-          // Cap DPR at 1.5. The 450-cloud soft volumetric array does not need
-          // 4K/Retina sharp 3.0x pixel precision, which saves billions of fragment calculations.
-          dpr: Math.min(window.devicePixelRatio, 1.5),
-          powerPreference: "high-performance",
+          dpr: window.devicePixelRatio,
+          // powerPreference: "high-performance",
         });
         const gl = renderer.gl;
         gl.clearColor(0, 0, 0, 1);
@@ -120,12 +151,8 @@ export const SpaceHeroCanvas = React.memo(
         const handleResize = () => {
           const w = window.innerWidth;
           const h = window.innerHeight;
-          // Render at 70% resolution to drastically save GPU fill-rate on ultra-wide screens.
-          // CSS will automatically scale the canvas up to fill the viewport seamlessly.
-          renderer.setSize(w * 0.7, h * 0.7);
-          gl.canvas.style.width = '100%';
-          gl.canvas.style.height = '100%';
-          camera.perspective({ aspect: w / h }); // Maintain true aspect ratio
+          renderer.setSize(w, h);
+          camera.perspective({ aspect: w / h });
         };
         window.addEventListener("resize", handleResize);
         handleResize();
@@ -143,7 +170,7 @@ export const SpaceHeroCanvas = React.memo(
               frameIdRef.current = requestAnimationFrame(animate);
             }
           },
-          { threshold: 0 }
+          { threshold: 0 },
         );
         if (containerRef.current) observer.observe(containerRef.current);
 
@@ -175,9 +202,13 @@ export const SpaceHeroCanvas = React.memo(
             magFilter: gl.LINEAR,
           });
 
-          // Dropped back to 150 to eliminate massive transparent overdraw jank.
-          // We'll compensate by increasing the base alpha multiplier instead.
-          const cloudCount = 150;
+          const nebulaColors = [
+            [123 / 255, 47 / 255, 202 / 255],
+            [6 / 255, 95 / 255, 70 / 255],
+            [83 / 255, 72 / 255, 184 / 255],
+            [22 / 255, 78 / 255, 99 / 255],
+          ];
+          const cloudCount = 50;
 
           const vertices = new Float32Array([
             -0.5, -0.5, 0, 0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0,
@@ -192,7 +223,41 @@ export const SpaceHeroCanvas = React.memo(
           const aColor = new Float32Array(cloudCount * 3);
           const aData = new Float32Array(cloudCount * 4);
 
-          // Aurora generation logic delegated to spaceWorker.ts
+          for (let i = 0; i < cloudCount; i++) {
+            const color =
+              nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
+            const opacity = 0.09 + Math.random() * 0.18;
+            const scale = 500 + Math.random() * 700;
+
+            const angleStep = (Math.PI * 2) / cloudCount;
+            const angle =
+              i * angleStep + (Math.random() - 0.5) * angleStep * 0.8;
+            const dist = 400 + Math.random() * 600;
+
+            aOffset.set(
+              [
+                Math.cos(angle) * dist,
+                (Math.random() - 0.5) * 4000,
+                Math.sin(angle) * dist,
+              ],
+              i * 3,
+            );
+
+            aScale[i] = scale;
+            aRotY[i] = angle + Math.PI;
+            aRotZ[i] = Math.random() * Math.PI * 2;
+
+            aColor.set(color, i * 3);
+            aData.set(
+              [
+                0.05 + Math.random() * 0.05,
+                Math.random() * Math.PI * 2,
+                opacity,
+                0,
+              ],
+              i * 4,
+            );
+          }
 
           const nebulaGeo = new Geometry(gl, {
             position: { size: 3, data: vertices },
@@ -208,7 +273,6 @@ export const SpaceHeroCanvas = React.memo(
 
           nebulaMat = new Program(gl, {
             vertex: `
-            precision mediump float;
             attribute vec3 position;
             attribute vec2 uv;
             attribute vec3 aOffset;
@@ -228,15 +292,10 @@ export const SpaceHeroCanvas = React.memo(
             varying float vOpacity;
             varying float vPhase;
             varying float vFogDepth;
-            varying float vDepth;
-            varying float vGlobalY;
 
             void main() {
               vUv = uv;
               vColor = aColor;
-              
-              // Pass the raw global Y position before it gets wrapped for infinite scrolling
-              vGlobalY = aOffset.y;
               
               float speed = aData.x;
               float phase = aData.y;
@@ -273,22 +332,18 @@ export const SpaceHeroCanvas = React.memo(
               );
               mvPosition.xy += rotatedXY;
               vFogDepth = -mvPosition.z;
-              vDepth = length(wrappedOffset);
               gl_Position = projectionMatrix * mvPosition;
             }
           `,
             fragment: `
-            precision mediump float;
+            precision highp float;
             uniform sampler2D uMap;
             uniform float uTime;
-            uniform float uLocalCameraY;
             varying vec2 vUv;
             varying vec3 vColor;
             varying float vOpacity;
             varying float vPhase;
             varying float vFogDepth;
-            varying float vDepth;
-            varying float vGlobalY;
 
             vec2 hash(vec2 p) {
               p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
@@ -305,53 +360,26 @@ export const SpaceHeroCanvas = React.memo(
             }
             float fbm(vec2 p) {
               float v = 0.0;
-              // 1-Octave Noise. Because the clouds are heavily smoothed/blurred,
-              // fine high-frequency details from additional octaves are invisible
-              // and unnecessarily double the fragment math payload per pixel.
-              v += 0.5 * noise(p); 
+              v += 0.5 * noise(p); p *= 2.1;
+              v += 0.25 * noise(p);
               return v;
             }
 
             void main() {
               vec4 texColor = texture2D(uMap, vUv);
-              
-              // Smooth, fluid time animation
-              vec2 timeShift = vec2(uTime * 0.4, uTime * 0.2) + vPhase;
-              
-              // 1. Distort UVs smoothly
-              vec2 noiseUv = vUv * 3.5 + timeShift;
+              float shift = sin(uTime * 0.15 + vPhase) * 0.15;
+              vec3 shifted = vColor + vec3(shift * 0.3, shift * -0.1, shift * 0.2);
+              vec2 noiseUv = vUv * 4.0 + vec2(uTime * 0.8, uTime * 0.5) + vPhase;
               float n = fbm(noiseUv);
               float nNorm = n * 0.5 + 0.5;
-              
-              // 2. "Slick" Contrast Curve
-              // Softened the bounding curve so shapes are much less obvious/distinct
-              float slickNoise = smoothstep(0.0, 1.0, nNorm);
-              
-              // 3. Dynamic iridescent shift
-              float iridescence = sin(uTime * 1.0 + vDepth * 5.0 + n * 4.0) * 0.5 + 0.5;
-              // Softer, deeper colors at the core
-              vec3 coreBase = mix(vec3(0.0, 0.2, 0.6), vec3(0.5, 0.1, 0.4), iridescence); 
-              
-              vec3 shifted = mix(vColor, coreBase, slickNoise * 0.7);
-
-              // 4. Slick Highlights
-              // Darkened the highlights down significantly since we have 3x as many clouds overlapping
-              float highlight = 0.15 + (0.5 * slickNoise);
-              
-              // 5. Elegant Scintillation
-              float flickerMask = smoothstep(0.2, 1.0, nNorm);
-              float flickerPulse = sin(uTime * 3.0 + vPhase * 2.0 + n * 8.0) * 0.5 + 0.5;
+              float highlight = 0.4 + 0.6 * nNorm;
+              float flickerMask = smoothstep(0.55, 0.75, nNorm);
+              float flickerPulse = sin(uTime * 1.5 + vPhase * 3.0 + n * 6.0) * 0.5 + 0.5;
               float flicker = flickerMask * flickerPulse * 0.6;
-              
-              // 6. Premium Alpha Blending
-              // Boosted the base alpha multiplier up to 1.5 to compensate for dropping 
-              // the cloud count back to 150, keeping the dense volumetric look alive.
-              float alpha = texColor.a * vOpacity * (highlight + flicker) * 1.5;
-              
+              float alpha = texColor.a * vOpacity * (highlight + flicker);
               float fogFactor = exp2( -0.0003 * 0.0003 * vFogDepth * vFogDepth * 1.442695 );
               fogFactor = clamp( fogFactor, 0.0, 1.0 );
               float nearFade = smoothstep(50.0, 350.0, vFogDepth);
-              
               gl_FragColor = vec4(shifted, alpha * fogFactor * nearFade);
             }
           `,
@@ -414,7 +442,7 @@ export const SpaceHeroCanvas = React.memo(
               vec3 wrappedPos = position;
               float wrapRange = 4000.0;
               wrappedPos.y = mod(wrappedPos.y - uLocalCameraY + wrapRange / 2.0, wrapRange) - wrapRange / 2.0 + uLocalCameraY;
-
+              
               vec4 mvPosition = modelViewMatrix * vec4(wrappedPos, 1.0);
               gl_Position = projectionMatrix * mvPosition;
               vFogDepth = -mvPosition.z;
@@ -430,8 +458,7 @@ export const SpaceHeroCanvas = React.memo(
               float twinkle = mix(1.0, twinkleBase, isTwink);
               
               vAlpha = vAlpha * (0.4 + 1.0 * twinkle); 
-              // A touch larger than original (original was 0.9 + 0.2)
-              gl_PointSize = gl_PointSize * (0.95 + 0.25 * twinkle); 
+              gl_PointSize = gl_PointSize * (0.9 + 0.2 * twinkle); 
               
               float scin = extraData.w;
               float flicker = sin(uTime * 6.0 + phase * 10.0); 
@@ -454,8 +481,7 @@ export const SpaceHeroCanvas = React.memo(
               float alpha = 1.0 - smoothstep(0.0, 0.48, dist);
               float glow = vGlow * (1.0 - smoothstep(0.0, 0.5, dist)) * 0.6;
               
-              // Increased from 0.7 back up to 0.9 for a *tiny* bit more brightness
-              float outAlpha = (alpha + glow) * vAlpha * 0.9;
+              float outAlpha = (alpha + glow) * vAlpha * 0.6;
               float fogFactor = exp2( -0.0003 * 0.0003 * vFogDepth * vFogDepth * 1.442695 );
               fogFactor = clamp( fogFactor, 0.0, 1.0 );
               
@@ -476,7 +502,6 @@ export const SpaceHeroCanvas = React.memo(
             mode: gl.POINTS,
             geometry: starGeo,
             program: starMat,
-            frustumCulled: false,
           });
           starSystem.setParent(scene);
         };
@@ -546,9 +571,8 @@ export const SpaceHeroCanvas = React.memo(
 
         // Input handlers
         const handleMouseMove = (e: MouseEvent) => {
-          // Use innerHeight for both to ensure left/right tracks at the exact same geometric speed as up/down
           mouseRef.current = {
-            x: (e.clientX / window.innerHeight) * 2 - 1,
+            x: (e.clientX / window.innerWidth) * 2 - 1,
             y: -(e.clientY / window.innerHeight) * 2 + 1,
           };
         };
@@ -592,26 +616,20 @@ export const SpaceHeroCanvas = React.memo(
           currentParallaxRef.current +=
             (targetParallaxRef.current - currentParallaxRef.current) *
             parallaxLerp;
-          const targetCamY = targetCameraPos.current.y;
-          const scrollParallax = currentParallaxRef.current * 1000;
-          // Keep the camera looking horizontally to prevent extreme diagonal fog distances
-          const tiltAmount = 0;
-          const wrapCenterWorldY = targetCamY;
+          const scrollY = -currentParallaxRef.current * 1000;
 
           if (starMat && starSystem) {
             starMat.uniforms.uTime.value = t;
             starSystem.rotation.y = currentRotationRef.current * 0.8;
-            starSystem.position.y = scrollParallax;
-            starMat.uniforms.uLocalCameraY.value =
-              wrapCenterWorldY - starSystem.position.y;
+            starSystem.position.y = scrollY * 0.85;
+            starMat.uniforms.uLocalCameraY.value = camera.position.y - starSystem.position.y;
           }
 
           if (nebulaMat && instancedNebula) {
             nebulaMat.uniforms.uTime.value = t;
             instancedNebula.rotation.z = t * 0.01;
-            instancedNebula.position.y = scrollParallax * 0.85;
-            nebulaMat.uniforms.uLocalCameraY.value =
-              wrapCenterWorldY - instancedNebula.position.y;
+            instancedNebula.position.y = scrollY * 0.85;
+            nebulaMat.uniforms.uLocalCameraY.value = camera.position.y - instancedNebula.position.y;
           }
 
           if (Math.random() < 0.015) {
@@ -645,7 +663,7 @@ export const SpaceHeroCanvas = React.memo(
               );
               star.position.set(
                 (Math.random() - 0.5) * 2000,
-                targetCamY + scrollParallax + (Math.random() - 0.5) * 1200,
+                camera.position.y + (Math.random() - 0.5) * 1200,
                 (Math.random() - 0.5) * 400 - 100,
               );
               star.rotation.z = angle;
@@ -674,9 +692,9 @@ export const SpaceHeroCanvas = React.memo(
 
           const mouseFactor = 1 - 0.0001 ** deltaTime;
           targetCameraPos.current.x +=
-            (mouseRef.current.x * 20 - targetCameraPos.current.x) * mouseFactor;
+            (mouseRef.current.x * 50 - targetCameraPos.current.x) * mouseFactor;
           targetCameraPos.current.y +=
-            (mouseRef.current.y * 20 - targetCameraPos.current.y) * mouseFactor;
+            (mouseRef.current.y * 50 - targetCameraPos.current.y) * mouseFactor;
           const tOrbit = t * 0.02;
           const radius = 500;
           const orbitalX =
@@ -685,18 +703,17 @@ export const SpaceHeroCanvas = React.memo(
             Math.cos(currentRotationRef.current + tOrbit) * radius;
           camera.position.set(
             orbitalX + targetCameraPos.current.x,
-            targetCamY,
+            scrollY + targetCameraPos.current.y,
             orbitalZ,
           );
-          camera.lookAt([0, -tiltAmount, 0]);
+          const tiltAmount = currentParallaxRef.current * 150;
+          camera.lookAt([0, scrollY - tiltAmount, 0]);
           renderer.render({ scene, camera });
         }
 
         // Build scene and start rendering immediately
         buildNebula(cloudCanvas as unknown as ImageBitmap);
-        // Reduced from 100,000 down to 20,000 to eliminate a massive GPU rasterizer 
-        // string bottleneck caused by drawing 100k transparent quads on top of each other.
-        buildStarfield(20000);
+        buildStarfield(50000);
         buildShootingStars();
 
         gl.canvas.classList.add(styles.canvasReady);
@@ -704,25 +721,6 @@ export const SpaceHeroCanvas = React.memo(
 
         // --- Handle progressive star data from worker ---
         worker.onmessage = (e: MessageEvent) => {
-          if (e.data.type === "auroras") {
-            if (instancedNebula) {
-              const geo = instancedNebula.geometry;
-              geo.attributes.aOffset.data!.set(e.data.aOffset);
-              geo.attributes.aScale.data!.set(e.data.aScale);
-              geo.attributes.aRotY.data!.set(e.data.aRotY);
-              geo.attributes.aRotZ.data!.set(e.data.aRotZ);
-              geo.attributes.aColor.data!.set(e.data.aColor);
-              geo.attributes.aData.data!.set(e.data.aData);
-              geo.attributes.aOffset.needsUpdate = true;
-              geo.attributes.aScale.needsUpdate = true;
-              geo.attributes.aRotY.needsUpdate = true;
-              geo.attributes.aRotZ.needsUpdate = true;
-              geo.attributes.aColor.needsUpdate = true;
-              geo.attributes.aData.needsUpdate = true;
-            }
-            return;
-          }
-
           const {
             offset,
             count,

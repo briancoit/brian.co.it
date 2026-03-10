@@ -83,13 +83,15 @@ function generateStarBatch(
     const colorSeed = Math.random();
     const coreFade = Math.max(0, 1 - clusterDist * 0.5); // Fade much slower from core
     
+    // Increased size multipliers to compensate for an 80% reduction
+    // in total star count to solve a catastrophic GPU rasterizer bottleneck
     sizes[j] = isClusterStar
       ? seed < 0.8
-        ? (1.0 + Math.random() * 1.5) * (0.6 + 0.4 * coreFade)
-        : (2.0 + Math.random() * 2.0) * (0.6 + 0.4 * coreFade)
+        ? (2.0 + Math.random() * 2.5) * (0.6 + 0.4 * coreFade)
+        : (4.0 + Math.random() * 4.0) * (0.6 + 0.4 * coreFade)
       : seed < 0.8
-        ? 0.8 + Math.random() * 1.2 // Boosted normal star size
-        : 1.8 + Math.random() * 1.5;
+        ? 1.5 + Math.random() * 2.0 // Boosted normal star size
+        : 3.0 + Math.random() * 2.5;
       
     phases[j] = Math.random() * Math.PI * 2;
     freqs[j] = 0.5 + Math.random() * 1.0;
@@ -111,10 +113,10 @@ function generateStarBatch(
     }
 
     if (isClusterStar) {
-      // Darken galaxies slightly to sit deeper in the background
-      cR *= 0.7;
-      cG *= 0.7;
-      cB *= 0.7;
+      // Darken galaxies significantly to sit much deeper in the background
+      cR *= 0.3;
+      cG *= 0.3;
+      cB *= 0.3;
     }
 
     colors[j * 3] = cR;
@@ -126,8 +128,73 @@ function generateStarBatch(
 }
 
 self.onmessage = () => {
-  const totalCount = 100000;
+  const totalCount = 20000;
   const batchSize = 10000;
+
+  // --- Generate Auroras First ---
+  const cloudCount = 150;
+  const aOffset = new Float32Array(cloudCount * 3);
+  const aScale = new Float32Array(cloudCount);
+  const aRotY = new Float32Array(cloudCount);
+  const aRotZ = new Float32Array(cloudCount);
+  const aColor = new Float32Array(cloudCount * 3);
+  const aData = new Float32Array(cloudCount * 4);
+
+  const nebulaColors = [
+    [123 / 255, 47 / 255, 202 / 255],
+    [6 / 255, 95 / 255, 70 / 255],
+    [83 / 255, 72 / 255, 184 / 255],
+    [22 / 255, 78 / 255, 99 / 255],
+  ];
+
+  for (let i = 0; i < cloudCount; i++) {
+    const color = nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
+    const opacity = 0.09 + Math.random() * 0.18;
+    const scale = 500 + Math.random() * 700;
+
+    const angleStep = (Math.PI * 2) / cloudCount;
+    const angle = i * angleStep + (Math.random() - 0.5) * angleStep * 0.8;
+    const dist = 400 + Math.random() * 600;
+
+    aOffset[i * 3] = Math.cos(angle) * dist;
+    // Push the auroras way higher up by default (12000 spread centered at +4000)
+    // This anchors the vast majority of the clouds towards the top of the page.
+    aOffset[i * 3 + 1] = (Math.random() - 0.5) * 12000 + 4000;
+    aOffset[i * 3 + 2] = Math.sin(angle) * dist;
+
+    aScale[i] = scale;
+    aRotY[i] = angle + Math.PI;
+    aRotZ[i] = Math.random() * Math.PI * 2;
+
+    aColor[i * 3] = color[0];
+    aColor[i * 3 + 1] = color[1];
+    aColor[i * 3 + 2] = color[2];
+
+    aData[i * 4] = 0.05 + Math.random() * 0.05;
+    aData[i * 4 + 1] = Math.random() * Math.PI * 2;
+    aData[i * 4 + 2] = opacity;
+    aData[i * 4 + 3] = 0;
+  }
+
+  postMessage(
+    {
+      type: "auroras",
+      aOffset,
+      aScale,
+      aRotY,
+      aRotZ,
+      aColor,
+      aData,
+    },
+    [
+      aOffset.buffer,
+      aScale.buffer,
+      aRotY.buffer,
+      aRotZ.buffer,
+      aColor.buffer,
+      aData.buffer,
+    ]
+  );
 
   // Generate clusters once, shared across batches
   const clusterCount = 10 + Math.floor(Math.random() * 10); // 10 to 20 distinct galaxies
