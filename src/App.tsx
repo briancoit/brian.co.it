@@ -47,7 +47,7 @@ export const App = React.memo(function App() {
 
       if (!scrollContainer) {
         const allElements = document.querySelectorAll(
-          '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]'
+          '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]',
         );
         for (const el of allElements) {
           const overflow = window.getComputedStyle(el).overflowY;
@@ -89,7 +89,7 @@ export const App = React.memo(function App() {
 
     if (!scrollTarget) {
       const allElements = document.querySelectorAll(
-        '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]'
+        '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]',
       );
       for (const el of allElements) {
         const overflow = window.getComputedStyle(el).overflowY;
@@ -165,61 +165,76 @@ export const App = React.memo(function App() {
       <Suspense fallback={null}>
         <LazySpaceHeroCanvas />
       </Suspense>
-    <SnapScroll>
-      <section className={styles.hero}>
-        <div className={styles.heroStickyContainer}>
-          <div ref={heroWrapperRef} className={styles.wrapper}>
-            <h1>
-              {/* brian<span className={styles.soft}>coit</span>
+      <SnapScroll>
+        <section className={styles.hero}>
+          <div className={styles.heroStickyContainer}>
+            <div ref={heroWrapperRef} className={styles.wrapper}>
+              <h1>
+                {/* brian<span className={styles.soft}>coit</span>
               <br /> */}
-              Hi, I'm Brian.{" "}
-              <div className={styles.soft}>
-                Principal Software Engineer.{/* Let's get to work.*/}
-              </div>
-            </h1>
-          </div>
-        </div>
-      </section>
-      <section className={styles.middleSection}>
-        <div className={clsx(styles.wrapper, styles.bentoGrid)}>
-          <div ref={(el) => { cardRefs.current[0] = el; }} className={clsx(styles.bentoCard, styles.bentoCardBio)}>
-            <p>
-              I build software that works and lasts. I've led teams, shipped
-              cloud platforms, and improved code, all with one goal: make things
-              run well.
-            </p>
-            <p>
-              No fluff, no endless meetings—just focused effort. I care about
-              results, clear process, and making sure the work stands up to
-              real-world use.
-            </p>
-            <p>
-              Every project needs honest feedback and strong execution. If you
-              want straight answers, real progress, and a transparent approach,
-              let's talk.
-            </p>
-          </div>
-        </div>
-      </section>
-      <section>
-        <div className={clsx(styles.wrapper, styles.bentoGrid)}>
-          <div ref={(el) => { cardRefs.current[1] = el; }} className={clsx(styles.bentoCard, styles.bentoCardBio)}>
-            <EmploymentHistory />
-          </div>
-        </div>
-      </section>
-      <section>
-        <div className={clsx(styles.wrapper, styles.bentoGrid)}>
-          <div ref={(el) => { cardRefs.current[2] = el; }} className={clsx(styles.bentoCard, styles.bentoCardBio)}>
-            <div className={styles.wrapper}>
-              <Suspense fallback={null}>
-                <ContactForm />
-              </Suspense>
+                Hi, I'm Brian.{" "}
+                <div className={styles.soft}>
+                  Principal Software Engineer.{/* Let's get to work.*/}
+                </div>
+              </h1>
             </div>
           </div>
-        </div>
-      </section>
-    </SnapScroll>
+        </section>
+        <section className={styles.middleSection}>
+          <div className={clsx(styles.wrapper, styles.bentoGrid)}>
+            <div
+              ref={(el) => {
+                cardRefs.current[0] = el;
+              }}
+              className={clsx(styles.bentoCard, styles.bentoCardBio)}
+            >
+              <p>
+                I build software that works and lasts. I've led teams, shipped
+                cloud platforms, and improved code, all with one goal: make
+                things run well.
+              </p>
+              <p>
+                No fluff, no endless meetings—just focused effort. I care about
+                results, clear process, and making sure the work stands up to
+                real-world use.
+              </p>
+              <p>
+                Every project needs honest feedback and strong execution. If you
+                want straight answers, real progress, and a transparent
+                approach, let's talk.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section>
+          <div className={clsx(styles.wrapper, styles.bentoGrid)}>
+            <div
+              ref={(el) => {
+                cardRefs.current[1] = el;
+              }}
+              className={clsx(styles.bentoCard, styles.bentoCardBio)}
+            >
+              <EmploymentHistory />
+            </div>
+          </div>
+        </section>
+        <section>
+          <div className={clsx(styles.wrapper, styles.bentoGrid)}>
+            <div
+              ref={(el) => {
+                cardRefs.current[2] = el;
+              }}
+              className={clsx(styles.bentoCard, styles.bentoCardBio)}
+            >
+              <div className={styles.wrapper}>
+                <Suspense fallback={null}>
+                  <ContactForm />
+                </Suspense>
+              </div>
+            </div>
+          </div>
+        </section>
+      </SnapScroll>
     </>
   );
 });

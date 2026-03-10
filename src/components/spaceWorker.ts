@@ -11,7 +11,16 @@ function generateStarBatch(
   offset: number,
   count: number,
   totalCount: number,
-  clusters: { x: number; y: number; z: number; radius: number; tint: number; rotX: number; rotY: number; rotZ: number }[],
+  clusters: {
+    x: number;
+    y: number;
+    z: number;
+    radius: number;
+    tint: number;
+    rotX: number;
+    rotY: number;
+    rotZ: number;
+  }[],
 ) {
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
@@ -41,9 +50,12 @@ function generateStarBatch(
       const oz = gaussRand() * clusterRef.radius;
 
       // Apply random 3D rotation using Euler angles
-      const sx = Math.sin(clusterRef.rotX), cx = Math.cos(clusterRef.rotX);
-      const sy = Math.sin(clusterRef.rotY), cy = Math.cos(clusterRef.rotY);
-      const sz = Math.sin(clusterRef.rotZ), cz = Math.cos(clusterRef.rotZ);
+      const sx = Math.sin(clusterRef.rotX),
+        cx = Math.cos(clusterRef.rotX);
+      const sy = Math.sin(clusterRef.rotY),
+        cy = Math.cos(clusterRef.rotY);
+      const sz = Math.sin(clusterRef.rotZ),
+        cz = Math.cos(clusterRef.rotZ);
 
       // Rotate around Z
       const x1 = ox * cz - oy * sz;
@@ -82,7 +94,7 @@ function generateStarBatch(
     const seed = Math.random();
     const colorSeed = Math.random();
     const coreFade = Math.max(0, 1 - clusterDist * 0.5); // Fade much slower from core
-    
+
     // Increased size multipliers to compensate for an 80% reduction
     // in total star count to solve a catastrophic GPU rasterizer bottleneck
     sizes[j] = isClusterStar
@@ -92,7 +104,7 @@ function generateStarBatch(
       : seed < 0.8
         ? 1.5 + Math.random() * 2.0 // Boosted normal star size
         : 3.0 + Math.random() * 2.5;
-      
+
     phases[j] = Math.random() * Math.PI * 2;
     freqs[j] = 0.5 + Math.random() * 1.0;
 
@@ -107,9 +119,13 @@ function generateStarBatch(
 
     // Normal field star colors (unchanged)
     if (colorSeed < 0.04) {
-      cR = 0.7; cG = 0.8; cB = 1.0;
+      cR = 0.7;
+      cG = 0.8;
+      cB = 1.0;
     } else if (colorSeed < 0.08) {
-      cR = 1.0; cG = 0.9; cB = 0.7;
+      cR = 1.0;
+      cG = 0.9;
+      cB = 0.7;
     }
 
     if (isClusterStar) {
@@ -193,19 +209,28 @@ self.onmessage = () => {
       aRotZ.buffer,
       aColor.buffer,
       aData.buffer,
-    ]
+    ],
   );
 
   // Generate clusters once, shared across batches
   const clusterCount = 10 + Math.floor(Math.random() * 10); // 10 to 20 distinct galaxies
-  const clusters: { x: number; y: number; z: number; radius: number; tint: number; rotX: number; rotY: number; rotZ: number }[] = [];
+  const clusters: {
+    x: number;
+    y: number;
+    z: number;
+    radius: number;
+    tint: number;
+    rotX: number;
+    rotY: number;
+    rotZ: number;
+  }[] = [];
   for (let c = 0; c < clusterCount; c++) {
     // Keep galaxies outside the camera rotation radius (1200)
     const r = 2500 + Math.random() * 2500;
     const theta = 2 * Math.PI * Math.random();
     clusters.push({
       x: r * Math.cos(theta),
-      y: (Math.random() - 0.5) * 4000, 
+      y: (Math.random() - 0.5) * 4000,
       z: r * Math.sin(theta),
       radius: 50 + Math.random() * 80, // Small and distant
       tint: Math.random(),

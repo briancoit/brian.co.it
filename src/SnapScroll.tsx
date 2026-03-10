@@ -75,7 +75,9 @@ export const SnapScroll = ({
       const h = el.clientHeight;
       if (h === 0) return;
       const scrollTop = el.scrollTop;
-      const items = el.querySelectorAll(`.${styles.scrollItem}`) as NodeListOf<HTMLElement>;
+      const items = el.querySelectorAll(
+        `.${styles.scrollItem}`,
+      ) as NodeListOf<HTMLElement>;
       for (let i = 0; i < items.length; i++) {
         if (i === 0) continue;
         const item = items[i];
