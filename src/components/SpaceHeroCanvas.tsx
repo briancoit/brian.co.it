@@ -49,7 +49,7 @@ export const SpaceHeroCanvas = React.memo(
 
         if (!cachedScrollContainer) {
           const allElements = document.querySelectorAll(
-            '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]'
+            '[style*="overflow-y"], [style*="overflowY"], [class*="scrollContainer"]',
           );
           for (const el of allElements) {
             const overflow = window.getComputedStyle(el).overflowY;
@@ -77,7 +77,7 @@ export const SpaceHeroCanvas = React.memo(
 
       scrollTarget.addEventListener("scroll", handleScroll, { passive: true });
       handleScroll(); // Initial read
-      
+
       return () => scrollTarget.removeEventListener("scroll", handleScroll);
     }, []);
 
@@ -95,7 +95,7 @@ export const SpaceHeroCanvas = React.memo(
           new URL("./spaceWorker.ts?v=11", import.meta.url),
           {
             type: "module",
-          }
+          },
         );
         worker.postMessage("init");
 
@@ -123,8 +123,8 @@ export const SpaceHeroCanvas = React.memo(
           // Render at 70% resolution to drastically save GPU fill-rate on ultra-wide screens.
           // CSS will automatically scale the canvas up to fill the viewport seamlessly.
           renderer.setSize(w * 0.7, h * 0.7);
-          gl.canvas.style.width = '100%';
-          gl.canvas.style.height = '100%';
+          gl.canvas.style.width = "100%";
+          gl.canvas.style.height = "100%";
           camera.perspective({ aspect: w / h }); // Maintain true aspect ratio
         };
         window.addEventListener("resize", handleResize);
@@ -143,7 +143,7 @@ export const SpaceHeroCanvas = React.memo(
               frameIdRef.current = requestAnimationFrame(animate);
             }
           },
-          { threshold: 0 }
+          { threshold: 0 },
         );
         if (containerRef.current) observer.observe(containerRef.current);
 
@@ -533,8 +533,13 @@ export const SpaceHeroCanvas = React.memo(
         const cloudCanvas = document.createElement("canvas");
         cloudCanvas.width = 512;
         cloudCanvas.height = 512;
-        const cloudCtx = cloudCanvas.getContext("2d")!;
+        const cloudCtx = cloudCanvas.getContext("2d");
         const cx = 256;
+
+        if (!cloudCtx) {
+          throw new Error("Canvas.getContext('2d') returned null");
+        }
+
         const grad = cloudCtx.createRadialGradient(cx, cx, 0, cx, cx, cx);
         grad.addColorStop(0.0, "rgba(255, 255, 255, 1.0)");
         grad.addColorStop(0.2, "rgba(255, 255, 255, 0.8)");
@@ -694,7 +699,7 @@ export const SpaceHeroCanvas = React.memo(
 
         // Build scene and start rendering immediately
         buildNebula(cloudCanvas as unknown as ImageBitmap);
-        // Reduced from 100,000 down to 20,000 to eliminate a massive GPU rasterizer 
+        // Reduced from 100,000 down to 20,000 to eliminate a massive GPU rasterizer
         // string bottleneck caused by drawing 100k transparent quads on top of each other.
         buildStarfield(20000);
         buildShootingStars();
@@ -707,12 +712,12 @@ export const SpaceHeroCanvas = React.memo(
           if (e.data.type === "auroras") {
             if (instancedNebula) {
               const geo = instancedNebula.geometry;
-              geo.attributes.aOffset.data!.set(e.data.aOffset);
-              geo.attributes.aScale.data!.set(e.data.aScale);
-              geo.attributes.aRotY.data!.set(e.data.aRotY);
-              geo.attributes.aRotZ.data!.set(e.data.aRotZ);
-              geo.attributes.aColor.data!.set(e.data.aColor);
-              geo.attributes.aData.data!.set(e.data.aData);
+              geo.attributes.aOffset.data?.set(e.data.aOffset);
+              geo.attributes.aScale.data?.set(e.data.aScale);
+              geo.attributes.aRotY.data?.set(e.data.aRotY);
+              geo.attributes.aRotZ.data?.set(e.data.aRotZ);
+              geo.attributes.aColor.data?.set(e.data.aColor);
+              geo.attributes.aData.data?.set(e.data.aData);
               geo.attributes.aOffset.needsUpdate = true;
               geo.attributes.aScale.needsUpdate = true;
               geo.attributes.aRotY.needsUpdate = true;
