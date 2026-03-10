@@ -46,4 +46,7 @@ export default defineConfig({
     svgr(),
     react(),
   ],
+  ssr: {
+    noExternal: ["usehooks-ts"],
+  },
 });
